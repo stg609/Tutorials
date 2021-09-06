@@ -121,7 +121,8 @@ sudo apt-get install -y powershell
 
 # TODO
 Ctrl+C  
-内置的变量  
+基本元素
+Session  
 管道  
 单引号双引号  
 默认的 .Net 名称空间  
