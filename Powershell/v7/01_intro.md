@@ -11,6 +11,14 @@
 * Configuration management framework
 * Built on .NET Framework and .Net Core
 
+## Usecase
+* 活动目录（AD）管理 (e.g. 创建1000+个新用户)
+* 数据库管理 (e.g. SQL Server, Azure SQL Database)
+* EventLog 监控
+* 部署 / CICD
+* 创建 IIS Web 应用程序
+* 可以管理几乎所有的微软产品（Exchange, System Center)
+
 ## Histories
 | 名称  | 时间| 备注 |
 | ---  | ---| --- |
@@ -119,14 +127,80 @@ sudo apt-get install -y powershell
 * 访问网址  
 `> Inovke-WebRequest https://www.baidu.com`
 
+## 基本概念
+### Cmdlet (Command-let, aka. Powershell Command)
+每个命令是一对 “动词-名词” ，比如  `Get-Process`，这也是 PowerShell 中 Cmdlet 的命名约定 。PowerShell 已经内置了几百个比较常用的命令，我们可以通过 `Get-Command` 获取所有已经安装的命令。  
+Cmdlet 基本都是用 .Net 写的。
+
+#### Verb
+* Get — 获取 xxx
+* Start — 启动 xxx
+* Out — 输出 xxx
+* Stop — 停止 xxx
+* Set — 设置 xxx
+* New — 创建 xxx
+
+### Function
+功能上与 `Cmdlet` 差不多，相较于 `Cmdlet` 通过 .Net 写，`Function` 直接通过 Powershell 脚语言本来实现。
+
+### Alias
+别名
+
+```
+> Get-Alias -Definition Set-Location
+
+CommandType     Name                                               
+-----------     ----                                               
+Alias           cd -> Set-Location
+Alias           chdir -> Set-Location
+Alias           sl -> Set-Location
+```
+
+### Module
+### Pipeline (|)
+通过 `|` 把多个 `Cmdlet` 串联起来，前一个 `Cmdlet` 的输出作为 后一个 `Cmdlet` 的输入。
+
+如下：
+
+```
+> Get-Date | Get-Member
+
+   TypeName: System.DateTime
+
+Name                 MemberType     Definition
+----                 ----------     ----------
+Add                  Method         datetime Add(timespan value)
+AddDays              Method         datetime AddDays(double value)
+AddHours             Method         datetime AddHours(double value)
+AddMilliseconds      Method         datetime AddMilliseconds(double value)
+AddMinutes           Method         datetime AddMinutes(double value)
+AddMonths            Method         datetime AddMonths(int months)
+AddSeconds           Method         datetime AddSeconds(double value)
+AddTicks             Method         datetime AddTicks(long value)
+```
+### ps1
+PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet。
+
+#### 执行脚本
+执行一个脚本和调用一个 Cmdlet 很相似，通过 `路径` 和 `文件名` 来进行调用。
+
+#### 执行策略（Execution Policy）
+这是 PowerShell 的一种安全策略，表示在什么情况下允许执行 PowerShell 脚本。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
+
+执行策略这个设置是保存在注册表中的。
+
+## IDE
+### PowerShell ISE (Integrated Scripting Environment)
+### VSCode
+
 # TODO
 Ctrl+C  
-基本元素
+基本元素  
 Session  
 管道  
 单引号双引号  
 默认的 .Net 名称空间  
-基本语法 （弱类型、忽略大小写、注释、比较运算符、循环、异常 try...catch...） 
+基本语法 （弱类型、Scope、忽略大小写、注释、比较运算符、循环、异常 try...catch...、Escape） 
 CSV
 远程
 
