@@ -92,16 +92,21 @@ sudo apt-get install -y powershell
 
 # Have a Try
 ## 查看版本
-`> $PSVersionTable`
->|Name   |                        Value|
->|----|                           -----|
->|PSVersion                      |5.1.19041.1|
->|PSEdition                      |Desktop|
->|BCLRVersion                     |4.0.30319.42000|
->|PSCompatibleVersions           |{1.0, 2.0, 3.0, 4.0...}|
->|WSManStackVersion              |3.0|
->|PSRemotingProtocolVersion      |2.3|
->|SerializationVersion           |1.1.0.1|
+```
+> $PSVersionTable
+
+Name                           Value
+----                           -----
+PSVersion                      7.1.4
+PSEdition                      Core
+GitCommitId                    7.1.4
+OS                             Microsoft Windows 10.0.18363
+Platform                       Win32NT
+PSCompatibleVersions           {1.0, 2.0, 3.0, 4.0…}
+PSRemotingProtocolVersion      2.3
+SerializationVersion           1.1.0.1
+WSManStackVersion              3.0
+```
 ## 命令举例
 * 切换目录  
 `> cd 'C:\Program Files'`  
@@ -132,7 +137,7 @@ sudo apt-get install -y powershell
 每个命令是一对 “动词-名词” ，比如  `Get-Process`，这也是 PowerShell 中 Cmdlet 的命名约定 。PowerShell 已经内置了几百个比较常用的命令，我们可以通过 `Get-Command` 获取所有已经安装的命令。  
 Cmdlet 基本都是用 .Net 写的。
 
-#### Verb
+#### 常用的动词
 * Get — 获取 xxx
 * Start — 启动 xxx
 * Out — 输出 xxx
@@ -140,11 +145,10 @@ Cmdlet 基本都是用 .Net 写的。
 * Set — 设置 xxx
 * New — 创建 xxx
 
-### Function
+### 函数 Function
 功能上与 `Cmdlet` 差不多，相较于 `Cmdlet` 通过 .Net 写，`Function` 直接通过 Powershell 脚语言本来实现。
 
-### Alias
-别名
+### 别名 Alias
 
 ```
 > Get-Alias -Definition Set-Location
@@ -157,8 +161,28 @@ Alias           sl -> Set-Location
 ```
 
 ### Module
+模块是一个包，其中包含 PowerShell 成员，例如 cmdlet、函数、变量、别名等，以一个整体进行分发、安装、加载。
+
+通过 `Get-Module -ListAvailable` 来获取已经安装的模块：
+```
+> Get-Module -ListAvailable
+
+    Directory: C:\program files\windowsapps\microsoft.powershell_7.1.4.0_x64__8wekyb3d8bbwe\Modules
+
+ModuleType Version    PreRelease Name                                PSEdition ExportedCommands
+---------- -------    ---------- ----                                --------- ----------------
+Manifest   7.0.0.0               CimCmdlets                          Core      {Get-CimAssociatedInstance, Get-CimClass, Get-CimInstance, Get-CimSession…}
+Manifest   1.2.5                 Microsoft.PowerShell.Archive        Desk      {Compress-Archive, Expand-Archive}
+...
+```
+
+下载并安装安装模块  
+`Install-Module -Name PowerShellGet`
+
+默认情况下，都是从 [PowerShell Gallery](https://www.powershellgallery.com/) 下载
+
 ### Pipeline (|)
-通过 `|` 把多个 `Cmdlet` 串联起来，前一个 `Cmdlet` 的输出作为 后一个 `Cmdlet` 的输入。
+通过 `|` 把多个 `Cmdlet` 串联起来，前一个 `Cmdlet` 的 `输出` 作为 后一个 `Cmdlet` 的 `输入` 。
 
 如下：
 
@@ -178,16 +202,29 @@ AddMonths            Method         datetime AddMonths(int months)
 AddSeconds           Method         datetime AddSeconds(double value)
 AddTicks             Method         datetime AddTicks(long value)
 ```
-### ps1
+### Script
 PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet。
 
 #### 执行脚本
 执行一个脚本和调用一个 Cmdlet 很相似，通过 `路径` 和 `文件名` 来进行调用。
 
 #### 执行策略（Execution Policy）
-这是 PowerShell 的一种安全策略，表示在什么情况下允许执行 PowerShell 脚本。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
+在 Windows 上，是否能够执行 PowerShell 脚本，受限于执行策略。这是 PowerShell 的一种安全策略，表示在什么情况下允许执行 PowerShell 脚本。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
 
-执行策略这个设置是保存在注册表中的。
+* AllSigned   
+不管是本地的脚本还是非本地的脚本（比如来自一个链接），必须要被签名
+ 
+* RemoteSigned  
+本地脚本不限制，运行非本地的脚本必须要被签名
+
+* ByPass  
+没有限制
+
+**设置执行策略**
+```
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+```
+
 
 ## IDE
 ### PowerShell ISE (Integrated Scripting Environment)
