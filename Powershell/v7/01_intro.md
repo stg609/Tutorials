@@ -68,7 +68,7 @@ sudo apt-get install -y powershell
 镜像：`mcr.microsoft.com/powershell`
 
 举例:  
-`> docker run -it mcr.microsoft.com/powershell`
+`PS> docker run -it mcr.microsoft.com/powershell`
 
 # Compatibility Aliases
 
@@ -88,12 +88,12 @@ sudo apt-get install -y powershell
 | **ren**                               | **mv**       | `Rename-Item`     | `rni`, `ren`                              |
 | **type**                              | **cat**      | `Get-Content`     | `gc`, `cat`, `type`                       |
 
-* 摘自 https://docs.microsoft.com/en-us/powershell/scripting/learn/compatibility-aliases?view=powershell-7.1
+*摘自 https://docs.microsoft.com/en-us/powershell/scripting/learn/compatibility-aliases?view=powershell-7.1*
 
 # Have a Try
 ## 查看版本
 ```
-> $PSVersionTable
+PS> $PSVersionTable
 
 Name                           Value
 ----                           -----
@@ -109,28 +109,28 @@ WSManStackVersion              3.0
 ```
 ## 命令举例
 * 切换目录  
-`> cd 'C:\Program Files'`  
-`> Set-Location C:\Software`
+`PS> cd 'C:\Program Files'`  
+`PS> Set-Location C:\Software`
 * 获取所有 powershell 命令  
-`> Get-Command`
+`PS> Get-Command`
 * 获取帮助  
-`> Get-Help Get-Command`
+`PS> Get-Help Get-Command`
 * 获取当前日期和时间  
-`> Get-Date`
+`PS> Get-Date`
 * 获取所有进程   
-`> Get-Process`
+`PS> Get-Process`
 * 关机  
-`> Stop-Computer`
+`PS> Stop-Computer`
 * 重启  
-`> Restart-Computer`
+`PS> Restart-Computer`
 * 检查路径是否存在  
-`> Test-Path C:\test.txt`
+`PS> Test-Path C:\test.txt`
 ### 文件操作
 * 获取文件内容  
-`> Get-Content -Path .\test.txt `
+`PS> Get-Content -Path .\test.txt `
 ### 网络操作
 * 访问网址  
-`> Inovke-WebRequest https://www.baidu.com`
+`PS> Inovke-WebRequest https://www.baidu.com`
 
 ## 基本概念
 ### Cmdlet (Command-let, aka. Powershell Command)
@@ -151,7 +151,7 @@ Cmdlet 基本都是用 .Net 写的。
 ### 别名 Alias
 
 ```
-> Get-Alias -Definition Set-Location
+PS> Get-Alias -Definition Set-Location
 
 CommandType     Name                                               
 -----------     ----                                               
@@ -160,34 +160,13 @@ Alias           chdir -> Set-Location
 Alias           sl -> Set-Location
 ```
 
-### Module
-模块是一个包，其中包含 PowerShell 成员，例如 cmdlet、函数、变量、别名等，以一个整体进行分发、安装、加载。
-
-通过 `Get-Module -ListAvailable` 来获取已经安装的模块：
-```
-> Get-Module -ListAvailable
-
-    Directory: C:\program files\windowsapps\microsoft.powershell_7.1.4.0_x64__8wekyb3d8bbwe\Modules
-
-ModuleType Version    PreRelease Name                                PSEdition ExportedCommands
----------- -------    ---------- ----                                --------- ----------------
-Manifest   7.0.0.0               CimCmdlets                          Core      {Get-CimAssociatedInstance, Get-CimClass, Get-CimInstance, Get-CimSession…}
-Manifest   1.2.5                 Microsoft.PowerShell.Archive        Desk      {Compress-Archive, Expand-Archive}
-...
-```
-
-下载并安装安装模块  
-`Install-Module -Name PowerShellGet`
-
-默认情况下，都是从 [PowerShell Gallery](https://www.powershellgallery.com/) 下载
-
-### Pipeline (|)
+### 管道 Pipeline
 通过 `|` 把多个 `Cmdlet` 串联起来，前一个 `Cmdlet` 的 `输出` 作为 后一个 `Cmdlet` 的 `输入` 。
 
 如下：
 
 ```
-> Get-Date | Get-Member
+PS> Get-Date | Get-Member
 
    TypeName: System.DateTime
 
@@ -202,14 +181,11 @@ AddMonths            Method         datetime AddMonths(int months)
 AddSeconds           Method         datetime AddSeconds(double value)
 AddTicks             Method         datetime AddTicks(long value)
 ```
-### Script
-PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet。
-
-#### 执行脚本
-执行一个脚本和调用一个 Cmdlet 很相似，通过 `路径` 和 `文件名` 来进行调用。
+### 脚本 Script
+PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet 的调用。执行一个脚本和调用一个 Cmdlet 很相似，通过 `路径` 和 `文件名` 来进行调用。
 
 #### 执行策略（Execution Policy）
-在 Windows 上，是否能够执行 PowerShell 脚本，受限于执行策略。这是 PowerShell 的一种安全策略，表示在什么情况下允许执行 PowerShell 脚本。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
+在 *Windows* 上，是否能够执行 PowerShell 脚本受限于执行策略。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
 
 * AllSigned   
 不管是本地的脚本还是非本地的脚本（比如来自一个链接），必须要被签名
@@ -217,14 +193,35 @@ PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 
 * RemoteSigned  
 本地脚本不限制，运行非本地的脚本必须要被签名
 
+* Unrestricted
+不受限，对于 非Windows 电脑，从 PowerShell 6 开始就是默认且唯一的策略。会有提示。
+
 * ByPass  
-没有限制
+绕过检查，不会有任何提示和警告。
 
 **设置执行策略**
 ```
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+PS> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 ```
 
+### Module
+模块是一个包，其中包含 PowerShell 成员，例如 cmdlet、函数、变量、别名等，以一个整体进行分发、安装、加载。
+
+通过 `Get-Module -ListAvailable` 可以获取已经安装的模块：
+```
+> Get-Module -ListAvailable
+
+    Directory: C:\program files\windowsapps\microsoft.powershell_7.1.4.0_x64__8wekyb3d8bbwe\Modules
+
+ModuleType Version    PreRelease Name                                PSEdition ExportedCommands
+---------- -------    ---------- ----                                --------- ----------------
+Manifest   7.0.0.0               CimCmdlets                          Core      {Get-CimAssociatedInstance, Get-CimClass, Get-CimInstance, Get-CimSession…}
+Manifest   1.2.5                 Microsoft.PowerShell.Archive        Desk      {Compress-Archive, Expand-Archive}
+...
+```
+
+下载并安装安装模块 （*默认情况下，都是从 [PowerShell Gallery](https://www.powershellgallery.com/) 下载*）  
+`Install-Module -Name PowerShellGet`
 
 ## IDE
 ### PowerShell ISE (Integrated Scripting Environment)
@@ -243,7 +240,8 @@ CSV
 
 
 # Demo
-自动化脚本  
+自动化部署  
+UI 自动化
 
 
 
