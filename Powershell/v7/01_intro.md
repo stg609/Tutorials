@@ -42,7 +42,7 @@
 * 通过微软应用商店
 ## Linux
 ### Centos 7
-```
+```Bash
 # Register the Microsoft RedHat repository
 curl https://packages.microsoft.com/config/rhel/7/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo
 
@@ -50,7 +50,7 @@ curl https://packages.microsoft.com/config/rhel/7/prod.repo | sudo tee /etc/yum.
 sudo yum install -y powershell
 ```
 ### Ubuntu 16.04
-```
+```Bash
 # Update the list of packages
 sudo apt-get update
 # Install pre-requisite packages.
@@ -92,7 +92,7 @@ sudo apt-get install -y powershell
 
 # Have a Try
 ## 查看版本
-```
+```PowerShell
 PS> $PSVersionTable
 
 Name                           Value
@@ -150,7 +150,7 @@ Cmdlet 基本都是用 .Net 写的。
 
 ### 别名 Alias
 
-```
+```PowerShell
 PS> Get-Alias -Definition Set-Location
 
 CommandType     Name                                               
@@ -165,7 +165,7 @@ Alias           sl -> Set-Location
 
 如下：
 
-```
+```PowerShell
 PS> Get-Date | Get-Member
 
    TypeName: System.DateTime
@@ -200,15 +200,18 @@ PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 
 绕过检查，不会有任何提示和警告。
 
 **设置执行策略**
-```
+```PowerShell
 PS> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 ```
 
-### Module
+### 会话 Session
+运行 PowerShell 时候的环境
+
+### 模块 Module
 模块是一个包，其中包含 PowerShell 成员，例如 cmdlet、函数、变量、别名等，以一个整体进行分发、安装、加载。
 
 通过 `Get-Module -ListAvailable` 可以获取已经安装的模块：
-```
+```PowerShell
 > Get-Module -ListAvailable
 
     Directory: C:\program files\windowsapps\microsoft.powershell_7.1.4.0_x64__8wekyb3d8bbwe\Modules
