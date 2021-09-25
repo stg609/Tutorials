@@ -5,13 +5,13 @@
 * 大多数 Windows 用户主要以 GUI 操作为主
 
 
-## What is Powershell?
+## What is PowerShell?
 * Cross-platform command-line shell
 * An Object-oriented automation engine and scripting language
 * Configuration management framework
 * Built on .NET Framework and .Net Core
 
-## Usecase
+## Use case
 * 活动目录（AD）管理 (e.g. 创建1000+个新用户)
 * 数据库管理 (e.g. SQL Server, Azure SQL Database)
 * EventLog 监控
@@ -22,21 +22,21 @@
 ## Histories
 | 名称  | 时间| 备注 |
 | ---  | ---| --- |
-| Monad (aka. Microsoft Shell)| 2005 |
-|Windows Powershell v1|2006| 对 Monad 的改名，基于 .Net Framework, 集成于 Win XP、Win Server 2003, Win Vista|
-|Windows Powershell v2.0 |2009.8| 增加更多的命令，集成于 Win7、Win Server 2008 R2|
-|Windows Powershell v3.0 |2012| 集成于 Win8、Win Server 2012|
-|Windows Powershell v4.0 |2012| 集成于 Win8.1、Win Server 2012 R2|
-|Windows Powershell v5.0 |2016| |
-|Windows Powershell v5.1 |2016| 集成于  Win10、Win Server 2016|
-|Powershell Core 6|2016.8| 基于 .Net Core 3，开源、跨平台 |
-|Powershell 7|2020.3| 类似 .Net 5 的命名，兼容大部分 Windows Powershell 5.1 的模块，开源、跨平台|
-|**Powershell 7.1**|2020.11| 基于 .Net 5，支持基于 SSH 远程连接，支持 Docker
-|Powershell 7.2.0-preivew.9 | 2021.8 | 
+| Monad (aka. Microsoft Shell)| 2005 ||
+|Windows PowerShell v1|2006| 对 Monad 的改名，基于 .Net Framework, 集成于 Win XP、Win Server 2003, Win Vista|
+|Windows PowerShell v2.0 |2009.8| 增加更多的命令，集成于 Win7、Win Server 2008 R2|
+|Windows PowerShell v3.0 |2012| 集成于 Win8、Win Server 2012|
+|Windows PowerShell v4.0 |2012| 集成于 Win8.1、Win Server 2012 R2|
+|Windows PowerShell v5.0 |2016| |
+|Windows PowerShell v5.1 |2016| 集成于  Win10、Win Server 2016|
+|PowerShell Core 6|2016.8| 基于 .Net Core 3，开源、跨平台 |
+|PowerShell 7|2020.3| 类似 .Net 5 的命名，兼容大部分 Windows PowerShell 5.1 的模块，开源、跨平台 |
+|**PowerShell 7.1**|2020.11| 基于 .Net 5，支持基于 SSH 远程连接，支持 Docker|
+|PowerShell 7.2.0-preivew.9 | 2021.8 ||
 
 # Setup And Installation
 ## Win 10
-默认自带 Windows Powershell v5.1
+默认自带 Windows PowerShell v5.1
 ### 安装最新版
 * 下载最新安装包 https://github.com/PowerShell/PowerShell/releases/tag/v7.1.4
 * 通过微软应用商店

@@ -24,10 +24,10 @@ $ChromeDriver.Navigate().GoToURL('https://app.dev.powertradepro.com/')
 $ChromeDriver.FindElementByXPath('//*[@id="account"]').SendKeys('2853023689@qq.com')
 
 # Enter the password in the Password box
-$ChromeDriver.FindElementByXPath('//*[@id="password"]').SendKeys('May!@121')
+$ChromeDriver.FindElementByXPath('//*[@id="password"]').SendKeys('Passw0rd1')
 
 # Click on the Login button
-$ChromeDriver.FindElementByXPath('//*[@id="login-form"]/div[5]/button').Click()
+$ChromeDriver.FindElementByXPath('//*[@id="login-form"]/div[6]/button').Click()
 
 $ChromeDriver.Manage().Timeouts().ImplicitWait = New-TimeSpan -Seconds 5
 $ChromeDriver.FindElementByXPath('/html/body/div[1]/div/section/div[1]/aside/div/div[2]/div/div/ul[2]/li[1]/a').Click()

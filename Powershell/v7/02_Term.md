@@ -1,5 +1,5 @@
 ## 基本概念
-### Cmdlet (Command-let, aka. Powershell Command)
+### Cmdlet (Command-let, aka. PowerShell Command)
 每个命令是一对 “动词-名词” ，比如  `Get-Process`，这也是 PowerShell 中 Cmdlet 的命名约定 。PowerShell 已经内置了几百个比较常用的命令，我们可以通过 `Get-Command` 获取所有已经安装的命令。  
 Cmdlet 基本都是用 .Net 写的。
 
@@ -48,14 +48,14 @@ AddSeconds           Method         datetime AddSeconds(double value)
 AddTicks             Method         datetime AddTicks(long value)
 ```
 ### 脚本 Script
-PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet 的调用。执行一个脚本和调用一个 Cmdlet 很相似，通过 `路径` 和 `文件名` 来进行调用。
+`.ps1`  是 PowerShell 脚本的扩展名，PowerShell 脚本中可以包含一个或多个 Cmdlet 的调用。
 
 #### 执行策略（Execution Policy）
 在 *Windows* 上，是否能够执行 PowerShell 脚本受限于执行策略。默认的执行策略为 `Restricted` (受限的)，阻止所有脚本的执行。
 
 * AllSigned   
 不管是本地的脚本还是非本地的脚本（比如来自一个链接），必须要被签名
- 
+
 * RemoteSigned  
 本地脚本不限制，运行非本地的脚本必须要被签名
 
@@ -71,8 +71,8 @@ PS> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 ```
 
 ### 会话 Session
-运行 PowerShell 时候的环境, 会话可以是本地的，也可以是远程的。  
-在执行某些 cmd-let 的时候可以把 session 作为参数进行传递，那么对应的 cmd-let 将会在对应的 session 中运行。  
+运行 PowerShell 时候的执行环境, 会话可以是本地的，也可以是远程的。  
+在执行某些 cmd-let 的时候可以把 session 作为参数进行传递，那么对应的 cmd-let 将会在给定的 session 中运行。  
 常用于需要远程操作的场景：比如自动化部署
 
 ### 模块 Module

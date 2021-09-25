@@ -19,7 +19,7 @@
      ```powershell
      [int]$number = 8
      $number = "12345" # 转成数字类型
-
+     
      [datetime] $dates = "09/12/91" #转成 DateTime 类型
      ```
    * 作用域
@@ -36,7 +36,7 @@
       *  $Env
          ```powershell
          $Env:windir
-
+         
          C:\windows
          ```
 
@@ -62,7 +62,7 @@
       *  $IsLinux | $IsMacOS | $IsWindows   
          是否是某个 OS
       *  $_ 或者 $PsItem   
-         管道传递的数组对象中的某个一个 Item   
+         管道传递的数组对象中的某一个 Item   
          `Get-Command | ForEach-Object { $_.Name }`
       *  $null  
          **当 $null 参与判断的时候，把 $null 放在左边**
@@ -74,7 +74,7 @@
          ```
          当 `$value` 直接参与检查时，如下: 表示 *如果 `$value` 不是 `$null` 或 `0` 或    `$false`  或 空字符串，则 Do Something*
          ```PowerShell
-         if（$value)
+         if($value)
          {
             # Do Something
          }
@@ -95,7 +95,7 @@
          ```
    
 
-      * $true
+      * $true、$false
 1. 引号
    *  双引号 字符串   
       是一个可扩展的字符串
@@ -118,6 +118,7 @@
          ```
 1. 操作符   
    不支持 `==`, `<=`, `>=`, `!=`，`>`，`<` 等比较操作符 
+   
    | 常规 | PowerShell | 示例|说明|
    | --- | ---| --- |---|
    |==|-eq| | 不区分大小写，否则使用 -ceq |
@@ -131,8 +132,6 @@
    |\|\||-or| $var1 -lt 100 -or $var1 -gt 0 ||
    | 无|::|[datetime]::Now|调用静态成员|
    | 无|&| & '.\someapp.exe'|调用脚本或可执行程序|
-  
-
 1. 类型定义 
     * string
     * char
@@ -149,7 +148,6 @@
     * Array
     * Hashtable
     * PsObject
-    * xml
 1. 括号
     * 小括号 "`()`"  
       * (...)
@@ -180,17 +178,17 @@
         ```powershell
         # 返回第一个元素
         $arr[0]
-
+        
         # 返回倒数第二个元素
         $arr[-2]
-
+        
         # 返回 0 到 3 个元素
         $arr[0...3]
         ```
       * 访问 Hashtable
         ```powershell
         $hashtable = @{Name="PowerShell";Title="Sharing";}
-
+        
         # 返回 PowerShell
         $hastable["Name"]
         ```
@@ -206,7 +204,7 @@
         ```powershell
         # 返回 1
         [System.Math]::Abs(-1)
-
+        
         [math]::Abs(-1)
         ```
 
@@ -241,163 +239,174 @@
     Add-Type -Path "xxx.dll"
     [ClassLibrary1.Class1]::HelloWorld()
     ```
-1. 循环
+1. 流程控制
    * ForEach 关键字
-   ```powershell
-   $letterArray = "a","b","c","d"
-   foreach ($letter in $letterArray)
-   {
-      Write-Host $letter
-   }
-   ```
-
-   * ForEach-Object cmdlet
-   ```powershell
-   1..5 | ForEach-Object {$_}
-   ```
+     ```powershell
+     $letterArray = "a","b","c","d"
+     foreach ($letter in $letterArray)
+     {
+        Write-Host $letter
+     }
+     ```
+     * ForEach-Object cmdlet
+     ```powershell
+     1..5 | ForEach-Object {$_}
+     ```
+     
    * While
-   ```powershell
-   while($val -ne 3)
-   {
-      $val++
-      Write-Host $val
-   }
-   ```
-1. If
-   ```powershell
-   if(($var -eq 1) -or ($var -eq 2))
-   {
-      # do something
-   }
-   elseif ($var -eq 3)
-   {
-      # do something
-   }
-   else
-   {
-      # do something
-   }
-   ```
-
-   **`-like` 模糊匹配**
-   * ? 匹配单个字符
-   * \* 匹配任意数量字符
-   ```powershell
-   $value = 'S-ATX-SQL01'
-   if ( $value -like 'S-*-SQL??')
-   {
-      # do something
-   }
-   ```
-   `-clike` 匹配（区分大小写）   
-   `-notlike` 不匹配   
-   `-cnotlike` 不匹配（区分大小写）
-
-   **`-match` 正则匹配**
-   ```powershell
-   $value = 'S-ATX-SQL01'
-   if ( $value -match 'S-\w\w\w-SQL\d\d')
-   {
-      # do something
-   }
-   ```
-   `-cmatch` 匹配（区分大小写）   
-   `-notmatch` 不匹配   
-   `-cnotmatch` 不匹配（区分大小写）
-
-   **`-is` 和 `-isnot` 检查类型**
-   ```powershell
-   if ( $value -is [string] )
-   {
-      # do something
-   }
-   ```  
-   **-contains 数组**
-   ```powershell
-   $array = 1..6
-   if ( $array -contains 3 )
-   {
-      # do something
-   }
-   ```
-   **-in 数组**
-   ```powershell
-   $array = 1..6
-   if ( 3 -in $array )
-   {
-      # do something
-   }
-   ```
-1. Switch
-   ```powershell
-   $day = 3
-
-   switch ( $day )
-   {
-      0 { $result = 'Sunday'    }
-      1 { $result = 'Monday'    }
-      2 { $result = 'Tuesday'   }
-      3 { $result = 'Wednesday' }
-      4 { $result = 'Thursday'  }
-      5 { $result = 'Friday'    }
-      default { $result = 'Saturday'  }
-   }
-   ```
-
-   数组
-   ```powershell
-   $roles = @('WEB','Database')
-
-   switch ( $roles ) {
-      'Database'   { 'Configure SQL' }
-      'WEB'        { 'Configure IIS' }
-      'FileServer' { 'Configure Share' }
-   }
-   ```
-
-   通配符
-   ```powershell
-   $Message = 'Warning, out of disk space'
-
-   switch -Wildcard ( $message )
-   {
-      'Error*'
+     ```powershell
+     while($val -ne 3)
+     {
+        $val++
+        Write-Host $val
+     }
+     ```
+     
+   * If
+     ```powershell
+     if(($var -eq 1) -or ($var -eq 2))
+     {
+        # do something
+     }
+     elseif ($var -eq 3)
+     {
+        # do something
+     }
+     else
+     {
+        # do something
+     }
+     ```
+     
+     **`-like` 模糊匹配**
+     * ? 匹配单个字符
+     * \* 匹配任意数量字符
+     ```powershell
+     $value = 'S-ATX-SQL01'
+     if ( $value -like 'S-*-SQL??')
+     {
+        # do something
+     }
+     ```
+     `-clike` 匹配（区分大小写）   
+     `-notlike` 不匹配   
+      `-cnotlike` 不匹配（区分大小写）
+     
+     
+     
+     **`-match` 正则匹配**
+     ```powershell
+     $value = 'S-ATX-SQL01'
+     if ( $value -match 'S-\w\w\w-SQL\d\d')
+     {
+        # do something
+     }
+     ```
+      `-cmatch` 匹配（区分大小写）   
+     `-notmatch` 不匹配   
+     `-cnotmatch` 不匹配（区分大小写）
+     
+     
+     
+     **`-is` 和 `-isnot` 检查类型**
+     ```powershell
+     if ( $value -is [string] )
+     {
+        # do something
+     }
+     ```
+     
+     
+     
+     **-contains 数组**
+     
+     ```powershell
+     $array = 1..6
+     if ( $array -contains 3 )
+     {
+        # do something
+     }
+     ```
+   
+     
+     
+     **-in 数组**
+     
+     ```powershell
+     $array = 1..6
+     if ( 3 -in $array )
+     {
+        # do something
+     }
+     ```
+     
+   * Switch
+     ```powershell
+     $day = 3    
+   
+     switch ( $day )
       {
-         Write-Error -Message $Message
+         0 { $result = 'Sunday'    }
+         1 { $result = 'Monday'    }
+         2 { $result = 'Tuesday'   }
+         3 { $result = 'Wednesday' }
+         4 { $result = 'Thursday'  }
+         5 { $result = 'Friday'    }
+         default { $result = 'Saturday'  }
       }
-      'Warning*'
+      ```
+      **数组**
+      ```powershell
+      $roles = @('WEB','Database')
+      
+      switch ( $roles ) {
+         'Database'   { 'Configure SQL' }
+         'WEB'        { 'Configure IIS' }
+         'FileServer' { 'Configure Share' }
+      }
+      ```
+    
+      **通配符**
+      ```powershell
+      $Message = 'Warning, out of disk space'
+      
+      switch -Wildcard ( $message )
       {
-         Write-Warning -Message $Message
+         'Error*'
+         {
+            Write-Error -Message $Message
+        }
+         'Warning*'
+         {
+            Write-Warning -Message $Message
+         }
+         default
+         {
+            Write-Information $message
+         }
       }
-      default
+      ```
+    
+      **正则**
+      ```powershell
+      $Message = 'Warning, out of disk space'
+      
+      switch -Regex ( $message )
       {
-         Write-Information $message
+         '^Error'
+         {
+            Write-Error -Message $Message
+         }
+         '^Warning'
+         {
+            Write-Warning -Message $Message
+         }
+         default
+         {
+            Write-Information $message
+         }
       }
-   }
-   ```
-
-   正则
-   ```powershell
-   $Message = 'Warning, out of disk space'
-
-   switch -Regex ( $message )
-   {
-      '^Error'
-      {
-         Write-Error -Message $Message
-      }
-      '^Warning'
-      {
-         Write-Warning -Message $Message
-      }
-      default
-      {
-         Write-Information $message
-      }
-   }
-   ```
-
-
+      ```
 1. 过滤 `Where-Object`
    ```powershell
    Get-Service | Where-Object {$_.StartType -EQ 'Automatic'}
@@ -436,12 +445,12 @@
    ```powershell
    $size = @{label="Size(KB)";expression={$_.length/1KB}}
    Get-ChildItem $PSHOME -File | Select-Object Name, $size
-
+   
    Name                                              Size(KB)
    ----                                              --------
    Accessibility.dll                               19.3671875
    API-MS-Win-Base-Util-L1-1-0.dll                  18.234375
    api-ms-win-core-com-l1-1-0.dll                  22.7265625
    api-ms-win-core-com-private-l1-1-0.dll          18.2578125
-
+   
    ```
