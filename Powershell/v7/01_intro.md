@@ -137,25 +137,3 @@ WSManStackVersion              3.0
 ## IDE
 ### PowerShell ISE (Integrated Scripting Environment)
 ### VSCode
-
-# TODO
-Ctrl+C  
-基本元素  
-Session  
-管道  
-单引号双引号  
-默认的 .Net 名称空间  
-基本语法 （弱类型、Scope、忽略大小写、注释、比较运算符、循环、异常 try...catch...、Escape） 
-CSV
-远程
-
-
-# Demo
-自动化部署  
-UI 自动化
-
-
-
-# References
-* [PowerShell Documentation](https://docs.microsoft.com/en-us/powershell/)
-* [Powershell Wikipedia](https://en.wikipedia.org/wiki/PowerShell#cite_note-17)
