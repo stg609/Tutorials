@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Dynamic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -30,6 +31,8 @@ namespace Demo1
             await ContinueRunCustomMethodsWithParamsAsync();
 
             await CreateScriptThenRunCustomMethodsWithParamsAsync();
+
+            await CodeBlockContinueWithExpressionAsync();
         }
 
         static async Task<object> Evalute1Plus1Async()
@@ -58,7 +61,8 @@ foreach(var a in coll)
 {
     Console.WriteLine(a);
 }";
-            await CSharpScript.RunAsync(script);
+           var obj = await CSharpScript.RunAsync(script);
+            
         }
 
         /// <summary>
@@ -166,6 +170,31 @@ void M(string val) {
             rslt = rslt.ContinueWith(script2);
 
             await rslt.RunAsync();
+
+
+        }
+
+        /// <summary>
+        /// 分成2个 script
+        /// </summary>
+        /// <returns></returns>
+        static async Task CodeBlockContinueWithExpressionAsync()
+        {
+            string scripts = @"
+var m = 1; var m2=2; var m3 = m+m2;
+";
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddImports("System");
+
+            var rslt = CSharpScript.Create(scripts, scriptOptions);
+
+            // 添加一个表达式
+            rslt = rslt.ContinueWith("m2+1");
+
+            // 添加一个代码块
+            rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
+
+            var ret = await rslt.RunAsync();
 
 
         }
