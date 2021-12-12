@@ -1,38 +1,52 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using CodingSeb.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using Newtonsoft.Json;
 
 namespace Demo1
 {
-    class Program
+    public class Program
     {
-        static async Task Main(string[] args)
+        ExpressionEvaluator _evaluator = new ExpressionEvaluator();
+
+        public static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            var ret1 = await Evalute1Plus1Async();
-            Console.WriteLine(ret1);
+            Program p = new Program();
+            //Console.WriteLine("Hello World!");
+            //var ret1 = await Evalute1Plus1Async();
+            //Console.WriteLine(ret1);
 
-            var ret2 = await Evalute1Plus1_ComplexAsync();
-            Console.WriteLine(ret2);
+            //var ret2 = await Evalute1Plus1_ComplexAsync();
+            //Console.WriteLine(ret2);
 
-            await RunWithExplictUsingAsync();
+            //await RunWithExplictUsingAsync();
 
-            await RunWithImportsAsync();
+            //await RunWithImportsAsync();
 
-            await RunExpandoObjectAsync();
+            //await RunExpandoObjectAsync();
 
-            await RunExtensionMethodsAsync();
+            //await RunExtensionMethodsAsync();
 
-            await RunCustomMethodsWithParamsAsync();
+            //await RunCustomMethodsWithParamsAsync();
 
-            await ContinueRunCustomMethodsWithParamsAsync();
+            //await ContinueRunCustomMethodsWithParamsAsync();
 
-            await CreateScriptThenRunCustomMethodsWithParamsAsync();
+            //await CreateScriptThenRunCustomMethodsWithParamsAsync();
 
-            await CodeBlockContinueWithExpressionAsync();
+            // await p.CodeBlockContinueWithExpressionAsync();
+
+            //p.BenchmarkUsingExpressionEvaluator();
+
+            BenchmarkRunner.Run<Program>();
+
+            await Task.CompletedTask;
         }
 
         static async Task<object> Evalute1Plus1Async()
@@ -61,8 +75,8 @@ foreach(var a in coll)
 {
     Console.WriteLine(a);
 }";
-           var obj = await CSharpScript.RunAsync(script);
-            
+            var obj = await CSharpScript.RunAsync(script);
+
         }
 
         /// <summary>
@@ -178,13 +192,66 @@ void M(string val) {
         /// 分成2个 script
         /// </summary>
         /// <returns></returns>
-        static async Task CodeBlockContinueWithExpressionAsync()
+        public async Task CodeBlockContinueWithExpressionAsync()
         {
             string scripts = @"
 var m = 1; var m2=2; var m3 = m+m2;
 ";
             ScriptOptions scriptOptions = ScriptOptions.Default
-                .AddImports("System");
+                .AddImports("System")
+                .AddImports("System.Threading.Tasks");
+
+
+            var rslt = CSharpScript.Create(scripts, scriptOptions);
+
+            // 添加一个表达式
+            rslt = rslt.ContinueWith("m2+1");
+
+            // 添加一个代码块
+            rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
+
+            // 直接包含一个 await 语句
+            rslt = rslt.ContinueWith("await Task.Delay(500);");
+
+            var ret = await rslt.RunAsync();
+        }
+
+        private Script<object> _scriptCache;
+
+        [Benchmark]
+        public async Task BenchmarkWithCacheAsync()
+        {
+            string scripts = @"
+var m = 1; var m2=2; var m3 = m+m2;
+";
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddImports("System")
+                .AddImports("System.Threading.Tasks");
+
+            if (_scriptCache == null)
+            {
+                var rslt = CSharpScript.Create(scripts, scriptOptions);
+
+                // 添加一个表达式
+                rslt = rslt.ContinueWith("m2+1");
+
+                // 添加一个代码块
+                rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
+
+                _scriptCache = rslt;
+            }
+            var ret = await _scriptCache.RunAsync();
+        }
+
+        [Benchmark]
+        public async Task BenchmarkWithoutCacheAsync()
+        {
+            string scripts = @"
+var m = 1; var m2=2; var m3 = m+m2;
+";
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddImports("System")
+                .AddImports("System.Threading.Tasks");
 
             var rslt = CSharpScript.Create(scripts, scriptOptions);
 
@@ -195,8 +262,17 @@ var m = 1; var m2=2; var m3 = m+m2;
             rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
 
             var ret = await rslt.RunAsync();
+        }
 
 
+        [Benchmark]
+        public void BenchmarkUsingExpressionEvaluator()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+            evaluator.ScriptEvaluate(@"
+var m = 1; var m2=2; var m3 = m+m2;
+for(i=0;i<m3;i++){Console.WriteLine(i);}
+                ");
         }
     }
 
