@@ -42,9 +42,11 @@ namespace Demo1
 
             // await p.CodeBlockContinueWithExpressionAsync();
 
+            await RunExpandoObjectWithGlobalsAsync();
+
             //p.BenchmarkUsingExpressionEvaluator();
 
-            BenchmarkRunner.Run<Program>();
+            //BenchmarkRunner.Run<Program>();
 
             await Task.CompletedTask;
         }
@@ -116,6 +118,30 @@ Console.WriteLine(obj.A);
             await CSharpScript.RunAsync(scripts, scriptOptions);
         }
 
+        static async Task RunExpandoObjectWithGlobalsAsync()
+        {
+            var global = new GLOBALExtended
+            {
+                GlobalVarsA = "this is a var from global"
+            };
+
+            string scripts = @"
+dynamic obj = new ExpandoObject();
+obj.A = 1;
+Console.WriteLine(GlobalVarsA);
+GlobalM1();
+GlobalM2(""aaa"");
+";
+
+            var expressions = typeof(System.Dynamic.ExpandoObject).Assembly; // 使用 ExpandObject 需要的 dll
+            var csharp = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly; // 使用 dynamic 需要的 dll
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddReferences(expressions, csharp)
+                .AddImports("System", "System.Dynamic"); // 与 withImports 不同，这个是在已有的 imports 基础上增加其他 imports
+
+            await CSharpScript.RunAsync(scripts, scriptOptions, global);
+        }
+
         static async Task RunExtensionMethodsAsync()
         {
             string scripts = @"
@@ -184,8 +210,6 @@ void M(string val) {
             rslt = rslt.ContinueWith(script2);
 
             await rslt.RunAsync();
-
-
         }
 
         /// <summary>
@@ -284,6 +308,24 @@ for(i=0;i<m3;i++){Console.WriteLine(i);}
             {
                 Console.WriteLine(obj);
             }
+        }
+    }
+
+    public class GLOBAL
+    {
+        public string GlobalVarsA { get; set; }
+
+        public void GlobalM1()
+        {
+            Console.WriteLine("This is method from Global");
+        }
+    }
+
+    public class GLOBALExtended : GLOBAL
+    {
+        public void GlobalM2(string param1)
+        {
+            Console.WriteLine("This is method from Global M2:" + param1);
         }
     }
 }
