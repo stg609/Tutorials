@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -19,6 +16,7 @@ namespace Demo1
         public static async Task Main(string[] args)
         {
             Program p = new Program();
+
             //Console.WriteLine("Hello World!");
             //var ret1 = await Evalute1Plus1Async();
             //Console.WriteLine(ret1);
@@ -27,6 +25,10 @@ namespace Demo1
             //Console.WriteLine(ret2);
 
             //await RunWithExplictUsingAsync();
+
+            //await RunWithAsyncAwaitAsync();
+
+            await RunWithAsyncAwaitHttpReqAsync();
 
             //await RunWithImportsAsync();
 
@@ -40,9 +42,9 @@ namespace Demo1
 
             //await CreateScriptThenRunCustomMethodsWithParamsAsync();
 
-            // await p.CodeBlockContinueWithExpressionAsync();
+            await p.CodeBlockContinueWithExpressionAsync();
 
-            await RunExpandoObjectWithGlobalsAsync();
+            //await RunExpandoObjectWithGlobalsAsync();
 
             //p.BenchmarkUsingExpressionEvaluator();
 
@@ -99,6 +101,36 @@ foreach(var a in coll)
             //Add namespaces
             scriptOptions = scriptOptions.WithImports("System"); // WithImports 表示只使用这个 imports
             await CSharpScript.RunAsync(script, scriptOptions);
+        }
+
+        /// <summary>
+        /// 使用 async await
+        /// </summary>
+        /// <returns></returns>
+        static async Task RunWithAsyncAwaitAsync()
+        {
+            string script = @"await Task.Delay(5000);";
+            ScriptOptions scriptOptions = ScriptOptions.Default;
+            //Add namespaces
+            scriptOptions = scriptOptions.WithImports("System", "System.Threading.Tasks");
+            await CSharpScript.RunAsync(script, scriptOptions);
+        }
+
+        /// <summary>
+        /// 使用 async await 发起 http 请求
+        /// </summary>
+        /// <returns></returns>
+        static async Task RunWithAsyncAwaitHttpReqAsync()
+        {
+            string script = @"System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient();
+var resp = await hc.GetAsync(""http://www.baidu.com"");
+return resp.StatusCode;";
+            ScriptOptions scriptOptions = ScriptOptions.Default;
+            //Add namespaces
+            scriptOptions = scriptOptions
+                .AddReferences(typeof(System.Net.Http.HttpClient).Assembly)
+                .WithImports("System", "System.Threading.Tasks", "System.Net.Http");
+            var rslt = await CSharpScript.RunAsync(script, scriptOptions);
         }
 
         static async Task RunExpandoObjectAsync()
@@ -221,8 +253,11 @@ void M(string val) {
             string scripts = @"
 var m = 1; var m2=2; var m3 = m+m2;
 ";
+
             ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddReferences(typeof(System.Linq.Enumerable).Assembly.Location)
                 .AddImports("System")
+                .AddImports("System.Linq")
                 .AddImports("System.Threading.Tasks");
 
 
@@ -230,14 +265,38 @@ var m = 1; var m2=2; var m3 = m+m2;
 
             // 添加一个表达式
             rslt = rslt.ContinueWith("m2+1");
+            var grp = new[] { 1, 2, 3 }.GroupBy(itm => itm);
+            // 添加一个Linq
+            rslt = rslt.ContinueWith("var grp  = new []{1,2,3}.GroupBy(itm=>itm);");
+            rslt = rslt.ContinueWith("var whereObj  = new []{1,2,3.Where(itm=>itm>2);");
+            //var whereObj = new[] { 1, 2, 3 }.Where(itm => itm > 2);
+            //var d =whereObj.GetType();
+            //var syntaxTree = rslt.GetCompilation().SyntaxTrees.First();
+            //var vars = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>();
+            //var semanticModel  = rslt.GetCompilation().GetSemanticModel(syntaxTree);
+            //foreach (var declared in vars)
+            //{
+            //    var identifier = declared.Variables.First().Identifier;
+            //    var symbol = semanticModel.GetDeclaredSymbol(declared.Variables[0]);
+            //    var name = semanticModel.GetTypeInfo(declared.Variables[0]);
+            //}
+
 
             // 添加一个代码块
             rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
 
             // 直接包含一个 await 语句
             rslt = rslt.ContinueWith("await Task.Delay(500);");
-
+            var compileResult = rslt.Compile();
             var ret = await rslt.RunAsync();
+
+            // 获取变量
+            var variables = ret.Variables.ToDictionary(itm => itm.Name, itm => itm.Value);
+            var d = "{\"Key\":\"whereObj\",\"Value\":[3]}";
+            foreach (var a in variables)
+            {
+                string s = JsonConvert.SerializeObject(a);
+            }
         }
 
         private Script<object> _scriptCache;
@@ -245,31 +304,36 @@ var m = 1; var m2=2; var m3 = m+m2;
         [Benchmark]
         public async Task BenchmarkWithCacheAsync()
         {
+            //  BenchmarkWithCacheAsync |     37.31 us |   1.888 us |     5.508 us
             string scripts = @"
 var m = 1; var m2=2; var m3 = m+m2;
 ";
             ScriptOptions scriptOptions = ScriptOptions.Default
                 .AddImports("System")
                 .AddImports("System.Threading.Tasks");
-
+            GLOBALExtended gLOBAL = new()
+            {
+                GlobalVarsA = "aa"
+            };
             if (_scriptCache == null)
             {
-                var rslt = CSharpScript.Create(scripts, scriptOptions);
+                var rslt = CSharpScript.Create(scripts, scriptOptions, typeof(GLOBALExtended));
 
                 // 添加一个表达式
                 rslt = rslt.ContinueWith("m2+1");
 
                 // 添加一个代码块
-                rslt = rslt.ContinueWith("for(int i=0;i<m3;i++){Console.WriteLine(i);}");
+                rslt = rslt.ContinueWith(@"for(int i=0;i<m3;i++){Console.WriteLine(i);GlobalM2(i+"""");}");
 
                 _scriptCache = rslt;
             }
-            var ret = await _scriptCache.RunAsync();
+            var ret = await _scriptCache.RunAsync(gLOBAL);
         }
 
         [Benchmark]
         public async Task BenchmarkWithoutCacheAsync()
         {
+            // BenchmarkWithoutCacheAsync | 17,074.38 us | 419.799 us | 1,177.161 us
             string scripts = @"
 var m = 1; var m2=2; var m3 = m+m2;
 ";
@@ -292,6 +356,7 @@ var m = 1; var m2=2; var m3 = m+m2;
         [Benchmark]
         public void BenchmarkUsingExpressionEvaluator()
         {
+            // BenchmarkUsingExpressionEvaluator |    670.72 us |   1.179 us |     1.103 us
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
             evaluator.ScriptEvaluate(@"
 var m = 1; var m2=2; var m3 = m+m2;
