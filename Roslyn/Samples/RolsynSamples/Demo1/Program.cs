@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using CodingSeb.ExpressionEvaluator;
@@ -9,6 +12,7 @@ using Newtonsoft.Json;
 
 namespace Demo1
 {
+
     public class Program
     {
         ExpressionEvaluator _evaluator = new ExpressionEvaluator();
@@ -18,7 +22,7 @@ namespace Demo1
             Program p = new Program();
 
             //Console.WriteLine("Hello World!");
-            //var ret1 = await Evalute1Plus1Async();
+            var ret1 = await Evalute1Plus1Async();
             //Console.WriteLine(ret1);
 
             //var ret2 = await Evalute1Plus1_ComplexAsync();
@@ -28,7 +32,7 @@ namespace Demo1
 
             //await RunWithAsyncAwaitAsync();
 
-            await RunWithAsyncAwaitHttpReqAsync();
+            //await RunWithAsyncAwaitHttpReqAsync();
 
             //await RunWithImportsAsync();
 
@@ -36,15 +40,19 @@ namespace Demo1
 
             //await RunExtensionMethodsAsync();
 
+            //await RunCustomMethodsFromOtherAssemblyAsync();
+
             //await RunCustomMethodsWithParamsAsync();
 
             //await ContinueRunCustomMethodsWithParamsAsync();
 
             //await CreateScriptThenRunCustomMethodsWithParamsAsync();
 
-            await p.CodeBlockContinueWithExpressionAsync();
+            //await p.CodeBlockContinueWithExpressionAsync();
 
             //await RunExpandoObjectWithGlobalsAsync();
+
+            await RunWithGlobalExpandoAsync();
 
             //p.BenchmarkUsingExpressionEvaluator();
 
@@ -109,6 +117,7 @@ foreach(var a in coll)
         /// <returns></returns>
         static async Task RunWithAsyncAwaitAsync()
         {
+
             string script = @"await Task.Delay(5000);";
             ScriptOptions scriptOptions = ScriptOptions.Default;
             //Add namespaces
@@ -144,6 +153,7 @@ Console.WriteLine(obj.A);
             var expressions = typeof(System.Dynamic.ExpandoObject).Assembly; // 使用 ExpandObject 需要的 dll
             var csharp = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly; // 使用 dynamic 需要的 dll
             ScriptOptions scriptOptions = ScriptOptions.Default
+                .WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.LatestMajor)
                 .AddReferences(expressions, csharp)
                 .AddImports("System", "System.Dynamic"); // 与 withImports 不同，这个是在已有的 imports 基础上增加其他 imports
 
@@ -174,6 +184,37 @@ GlobalM2(""aaa"");
             await CSharpScript.RunAsync(scripts, scriptOptions, global);
         }
 
+        static async Task RunWithGlobalExpandoAsync()
+        {
+            dynamic data = new ExpandoObject();
+            data.GlobalVarsA = "this is a global var.";
+
+            // Roslyn 目前不支持直接把 expandoObject\匿名类型 作为 global, 所以通过一个固定类型中加一个属性来使用 Expnaod
+            var global = new GLOBAL
+            {
+                _ = data
+            };
+
+            // 先生成一个 script 用于定义 global 中在变量, 这样第二个脚本就可以直接使用这些变量
+            StringBuilder sb = new StringBuilder();
+            foreach (var itm in data)
+            {
+                sb.Append("var " + itm.Key + "=_." + itm.Key + ";");
+            }
+
+            var expressions = typeof(System.Dynamic.ExpandoObject).Assembly; // 使用 ExpandObject 需要的 dll
+            var csharp = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly; // 使用 dynamic 需要的 dll
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddReferences(expressions, csharp)
+                .AddImports("System", "System.Dynamic"); 
+
+            var script = await CSharpScript.RunAsync(sb.ToString(), scriptOptions, global);
+
+            // 这里可以直接使用 global 中的变量
+            string scriptStr = "Console.WriteLine(GlobalVarsA);";
+            await script.ContinueWithAsync(scriptStr, scriptOptions);
+        }
+
         static async Task RunExtensionMethodsAsync()
         {
             string scripts = @"
@@ -189,6 +230,26 @@ obj.A = 1;
                 .AddImports("System", "System.Dynamic", "Demo1"); // MyConsole 需要使用这个 namespace
 
             await CSharpScript.RunAsync(scripts, scriptOptions);
+        }
+
+        static async Task RunCustomMethodsFromOtherAssemblyAsync()
+        {
+            string scripts = @"
+var str =  M1(""xxx"");
+var str2 = M1(""yyy"",""zzz"");
+";
+            var myExt = typeof(Exts).Assembly;
+            var myExt2 = typeof(Exts2).Assembly;
+            ScriptOptions scriptOptions = ScriptOptions.Default
+                .AddReferences(myExt2)
+                .AddReferences(myExt)
+                .AddImports("System", "Demo1.Exts", "Demo1.Exts2");
+
+            var rslt = await CSharpScript.RunAsync(scripts, scriptOptions);
+
+            dynamic @in = new { };
+
+            System.Dynamic.ExpandoObject input1 = @in.input1; System.String _input = @in._input; System.Dynamic.ExpandoObject _inputObj = @in._inputObj; System.String _tenantId = @in._tenantId; System.String _hostTenantId = @in._hostTenantId; System.String _subTenantId = @in._subTenantId; var _userId = @in._userId; System.Boolean _isTesting = @in._isTesting; System.String _connectionId = @in._connectionId; System.Boolean _isSync = @in._isSync; var _impersonatorUserId = @in._impersonatorUserId; var _item = @in._item; System.Collections.Generic.List<System.Object> table1 = @in.table1; System.String input_ogrmqgd6 = @in.input_ogrmqgd6; System.Dynamic.ExpandoObject obj = @in.obj; var obj2 = @in.obj2; System.Collections.Generic.List<System.Object> lst = @in.lst; System.Collections.Generic.List<System.Object> lst2 = @in.lst2; System.Collections.Generic.List<System.Object> lstCopy = @in.lstCopy; System.Int32 obj3 = @in.obj3; System.Boolean existed = @in.existed; System.Collections.Generic.List<System.Object> lst3 = @in.lst3; System.Dynamic.ExpandoObject first = @in.first; System.String str1 = @in.str1; System.String str2 = @in.str2; System.String str3 = @in.str3;
         }
 
         static async Task RunCustomMethodsWithParamsAsync()
@@ -374,11 +435,45 @@ for(i=0;i<m3;i++){Console.WriteLine(i);}
                 Console.WriteLine(obj);
             }
         }
+
+        public static string M1(string input)
+        {
+            return "return " + input + " from M1";
+        }
+
+        public static string M1(string input1, string input2)
+        {
+            return "return " + input1 + " " + input2 + " from M1";
+        }
     }
+
+    public static class Exts2
+    {
+        public static void MyConsole(this object obj)
+        {
+            if (obj != null)
+            {
+                Console.WriteLine(obj);
+            }
+        }
+
+        public static string M1(string input)
+        {
+            return "return " + input + " from Exts2.M1";
+        }
+
+        public static string M1(string input1, string input2)
+        {
+            return "return " + input1 + " " + input2 + " from Exts2.M1";
+        }
+    }
+
 
     public class GLOBAL
     {
         public string GlobalVarsA { get; set; }
+
+        public dynamic _ { get; set; }
 
         public void GlobalM1()
         {
