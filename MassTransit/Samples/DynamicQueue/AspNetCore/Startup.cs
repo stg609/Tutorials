@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MassTransit;
-using MessageContracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +27,7 @@ namespace AspNetCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -35,27 +40,15 @@ namespace AspNetCore
                 // 注册消费者
                 x.AddConsumer<DemoConsumer1>();
 
-                x.AddConsumer<DemoConsumer2>();
 
-                // SetKebabCaseEndpointNameFormatter sets the kebab-case endpoint name formatter, 
-                // which will create a receive endpoint named value-entered-event for the ValueEnteredEventConsumer. 
-                // The Consumer suffix is removed by default.
-                x.SetKebabCaseEndpointNameFormatter();
-
-                // 指定 Masstransit 使用的 Transport 是 RabbitMq
+                // 指定使用的 Transport 是 RabbitMq
                 x.UsingRabbitMq((ctx, cfg) =>
                 {
-                    // 配置连接的 Rabbitmq 地址，demo1 为 vhost 地址（需要事先在 rabbitmq 中添加该 vhost)
-                    cfg.Host("localhost", "demo1");
-
-                    // 使用 ConfigureEndpoints 自动根据注册的 Consumer 来配置 ReceiveEndpoint, Echange, Queue
-                    cfg.ConfigureEndpoints(ctx);
+                    cfg.Host("localhost", "dynamicQueue");
                 });
             });
 
-            // 跟随 .net core web api 自动启动 MassTransit
-            // The AddMassTransitHostedService(true) adds a hosted service for MassTransit that is responsible for starting and stopping the bus.This is required, as the bus will not operate propertly if it is not started and stopped.
-           services.AddMassTransitHostedService();
+            services.AddMassTransitHostedService();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -81,9 +74,8 @@ namespace AspNetCore
         }
     }
 
-    // 一个 consumer 可以消费多个不同的消息类型（通过实现多个 ICosnumer<T>)
     class DemoConsumer1 :
-        IConsumer<Demo1Msg>
+       IConsumer<IDemo1Msg>
     {
         ILogger<DemoConsumer1> _logger;
 
@@ -92,26 +84,15 @@ namespace AspNetCore
             _logger = logger;
         }
 
-        public async Task Consume(ConsumeContext<Demo1Msg> context)
+        public async Task Consume(ConsumeContext<IDemo1Msg> context)
         {
-            _logger.LogInformation("Value: {Value}", context.Message.Value);
+            await Task.Delay(3000);
+            _logger.LogInformation("Queue: {Queue}, Value: {Value}", context.DestinationAddress.AbsoluteUri, context.Message.Value);
         }
     }
 
-    class DemoConsumer2 :
-        IConsumer<Demo1Msg>
+    public interface IDemo1Msg
     {
-        ILogger<DemoConsumer2> _logger;
-
-        public DemoConsumer2(ILogger<DemoConsumer2> logger)
-        {
-            _logger = logger;
-        }
-
-        public async Task Consume(ConsumeContext<Demo1Msg> context)
-        {
-            _logger.LogInformation("Value2: {Value}", context.Message.Value);
-        }
+        string Value { get; }
     }
-
 }
