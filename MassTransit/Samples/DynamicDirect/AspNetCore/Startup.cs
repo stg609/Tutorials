@@ -47,10 +47,10 @@ namespace AspNetCore
                 // 指定使用的 Transport 是 RabbitMq
                 x.UsingRabbitMq((ctx, cfg) =>
                 {
-                    cfg.Host("localhost", "dynamicTopic");
+                    cfg.Host("localhost", "dynamicDirect");
 
-                    // 设置 topic.string 这个 exchange 类型为 topic
-                    cfg.Publish<IDemo1Msg>(x => x.ExchangeType = ExchangeType.Topic);
+                    // 设置 发送到 'AspNetCore:IDemo1Msg' 的类型参数为 direct
+                    cfg.Publish<IDemo1Msg>(x => x.ExchangeType = ExchangeType.Direct);
                 });
 
             });
