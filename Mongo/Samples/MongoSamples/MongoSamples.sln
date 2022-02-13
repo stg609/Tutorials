@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Transaction", "Transaction"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionDemo1", "Transaction\TransactionDemo1\TransactionDemo1.csproj", "{01B00C10-CAB1-4E49-BDAE-567E433D38E9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Serialization", "Serialization", "{CF32DC70-A85F-4EB0-9AC8-3A48594DBD23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Serialization\Demo\Demo.csproj", "{9ABA3BBE-3860-47C9-95D6-0C724981843E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,12 +21,17 @@ Global
 		{01B00C10-CAB1-4E49-BDAE-567E433D38E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01B00C10-CAB1-4E49-BDAE-567E433D38E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01B00C10-CAB1-4E49-BDAE-567E433D38E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9ABA3BBE-3860-47C9-95D6-0C724981843E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ABA3BBE-3860-47C9-95D6-0C724981843E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ABA3BBE-3860-47C9-95D6-0C724981843E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ABA3BBE-3860-47C9-95D6-0C724981843E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{01B00C10-CAB1-4E49-BDAE-567E433D38E9} = {821C3AF4-E44B-48C2-A007-F5EC48145EC5}
+		{9ABA3BBE-3860-47C9-95D6-0C724981843E} = {CF32DC70-A85F-4EB0-9AC8-3A48594DBD23}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F04D604E-7BCC-45B7-A7BE-A3867017C128}
