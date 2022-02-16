@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using MongoDB.Bson;
 
 namespace Demo1
 {
@@ -14,6 +15,7 @@ namespace Demo1
             Console.WriteLine("Hello World!");
 
             SimpleDynamicProperty();
+
             DynamicPropertyViaVariable();
 
             // 反注释来查看效果
@@ -22,6 +24,10 @@ namespace Demo1
 
             // demo: 通过 override TryGetMember 和 setGetMember 来对动态的属性进行控制，实现类似 ExpandoObject 的方式
             DynamicUsingDynamicObject();
+
+            DynamicMappingFieldsObject();
+
+            BsonDocumentToDynamicObject();
         }
 
         private static void DynamicPropertyViaVariable()
@@ -81,13 +87,82 @@ namespace Demo1
             // 如果 D 没有加到 property 中，则会出错。
             Console.WriteLine(obj.D);
         }
+
+        private static void BsonDocumentToDynamicObject()
+        {
+            BsonClass obj = new BsonClass
+            {
+                Date = DateTime.Now,
+                Value = 1.2m,
+                Coll = new List<BsonChildClass>
+                {
+                    new BsonChildClass
+                    {
+                        NestDate = DateTime.Now
+                    }
+                }
+            };
+            BsonDocument doc = obj.ToBsonDocument();
+
+            var obj2 = BsonTypeMapper.MapToDotNetValue(doc);
+            var sJson = Newtonsoft.Json.JsonConvert.SerializeObject(obj2);
+            dynamic dyn = Newtonsoft.Json.JsonConvert.DeserializeObject<MyDynaimcObject>(sJson);
+
+            Console.WriteLine(dyn.Date);
+            Console.WriteLine(dyn.Value);
+        }
+
+        /// <summary>
+        /// demo 演示在执行时动态替换字段
+        /// </summary>
+        private static void DynamicMappingFieldsObject()
+        {
+            // 完全用 dynamic object 来表示一个对象(及其中的属性，尤其是其中嵌套的属性，如集合）
+            dynamic dyn = new MyBsonDocumentDynaimcObject();
+            dyn.Date = DateTime.Now;
+            dyn.Value = 1.2m;
+            var lst = new List<MyBsonDocumentDynaimcObject>();
+            dynamic itm = new MyBsonDocumentDynaimcObject();
+            itm.NestDate = DateTime.Now;
+            itm.NestDecimal = 0.1m;
+            lst.Add(itm);
+            dyn.Coll = lst;
+
+
+            // 测试动态映射，__somefield 应该替换成 Date
+            var f1 = dyn.__somefield;
+            var result = "";
+
+            foreach (var item in dyn.__somecoll)
+            {
+                result += item.__somecoll__somefield2;
+            }
+
+        }
     }
+
 
     class StaticClass
     {
         public int A { get; set; }
         public int B { get; set; }
         public int C { get; set; }
+    }
+
+
+    class BsonClass
+    {
+        public DateTime Date { get; set; }
+
+        public decimal Value { get; set; }
+
+        public List<BsonChildClass> Coll { get; set; }
+    }
+
+    class BsonChildClass
+    {
+        public DateTime NestDate { get; set; }
+        public decimal NestDecimal { get; set; }
     }
 
     class MyEmptyDynamicObject : DynamicObject
@@ -108,6 +183,89 @@ namespace Demo1
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
             AddProperty(binder.Name, value);
+            return true;
+        }
+
+        public override bool TryConvert(ConvertBinder binder, out object result)
+        {
+            //var props = binder.Type.GetProperties(System.Reflection.BindingFlags.Public);
+            //foreach (var prop in props)
+            //{
+            //    binder.
+            //}
+            result = null;
+            return false;
+        }
+
+        public void AddProperty(string name, object value)
+        {
+            _dic[name] = value;
+        }
+
+        public void RenameProperty(string oldProp, string newProp, object value = null)
+        {
+            object rawValue = null;
+            if (_dic.ContainsKey(oldProp))
+            {
+                rawValue = _dic[oldProp];
+                _dic.Remove(oldProp);
+            }
+
+            AddProperty(newProp, value ?? rawValue);
+        }
+
+        // 如果我们想类似 js 的这种 dyn["aa"]= 1 ，则可以增加如下方法
+        public object this[string propertyName]
+        {
+            get
+            {
+                return _dic[propertyName];
+            }
+            set
+            {
+                AddProperty(propertyName, value);
+            }
+        }
+    }
+
+    class MyBsonDocumentDynaimcObject : DynamicObject
+    {
+        Dictionary<string, object> _dic = new Dictionary<string, object>();
+       
+
+        public MyBsonDocumentDynaimcObject()
+        {
+     
+        }
+
+        Dictionary<string, string> _mapping = new Dictionary<string, string>
+            {
+                {"__somefield","Date" },
+                {"__somecoll","Coll" },
+                {"__somecoll__somefield2","NestDecimal" }
+            };
+
+
+        // 告诉 dynamic 如何对待没有的属性
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string realName = null;
+            if (!_mapping.TryGetValue(binder.Name, out realName))
+            {
+                realName = binder.Name;
+            }
+            return _dic.TryGetValue(realName, out result);
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            string realName = null;
+            if(!_mapping.TryGetValue(binder.Name, out realName))
+            {
+                realName = binder.Name;
+            }
+
+            AddProperty(realName, value);
             return true;
         }
 
