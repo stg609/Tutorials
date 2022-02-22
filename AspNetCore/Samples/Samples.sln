@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31911.196
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileUpload", "FileUpload\FileUpload.csproj", "{7905799E-1B7E-4494-9E83-0C7D692469D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileUpload", "FileUpload\FileUpload.csproj", "{7905799E-1B7E-4494-9E83-0C7D692469D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorsDemo", "CorsDemo\CorsDemo.csproj", "{E000E288-C931-4B77-B8FF-F01D6E53507E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7905799E-1B7E-4494-9E83-0C7D692469D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7905799E-1B7E-4494-9E83-0C7D692469D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7905799E-1B7E-4494-9E83-0C7D692469D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E000E288-C931-4B77-B8FF-F01D6E53507E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E000E288-C931-4B77-B8FF-F01D6E53507E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E000E288-C931-4B77-B8FF-F01D6E53507E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E000E288-C931-4B77-B8FF-F01D6E53507E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

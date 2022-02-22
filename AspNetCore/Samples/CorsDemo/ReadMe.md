@@ -1,0 +1,1 @@
+﻿如果要运行 Demo, 把 demo.html 放在 localhost:3333 这个 endpoint 上，如果不调用 AddCustomCorsPolicy，则浏览器会返回 CORS 错误
