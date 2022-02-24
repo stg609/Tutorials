@@ -6,12 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace CorsDemo.Services
 {
-    public interface ICorsPolicyAccessor
-    {
-        CorsPolicy GetPolicy();
-    }
-
-
     public class CorsMiddleware
     {
         private readonly CorsOptions _options;
@@ -22,9 +16,12 @@ namespace CorsDemo.Services
             _options = options.Value;
             _next = next;
         }
+
         public async Task InvokeAsync(HttpContext context)
         {
-            var policy = _options.GetPolicy(_options.DefaultPolicyName);
+            var policy = _options.GetPolicy("custom");
+
+            // pretend read cors configuration from somewhere
             policy.Origins.Add("http://localhost:3333");
 
             await _next(context);

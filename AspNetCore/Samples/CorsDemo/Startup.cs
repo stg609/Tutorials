@@ -34,8 +34,10 @@ namespace CorsDemo
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CorsDemo", Version = "v1" });
             });
 
-            // 添加一个空的 Cors Policy, 用于后续 AddCustomCorsPolicy 时候添加规则
-            services.AddCors(x=>x.AddDefaultPolicy(builder=>
+            // 添加一个空的非默认的 Cors Policy, 用于后续 AddCustomCorsPolicy 时候添加规则
+            // 如果是默认的Policy，那 middleware 中添加 useCors 后，没有使用 EnableCorsAttribute 也会有效果，
+            // 所以为了避免默认的行为，这里采用命名的 Policy
+            services.AddCors(x=>x.AddPolicy("custom", builder=>
             {
             }));
         }

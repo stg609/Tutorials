@@ -1,14 +1,65 @@
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-<p>Hello</p>
-<script>
-$.ajax({
-	url: "https://localhost:5001/WeatherForecast",	
-	 type: "Get",
-});
-</script>
+	<p><b>Enabled Controller</b></p>
+	<span id="enbC"></span>
+	<script>
+		$.ajax({
+			url: "https://localhost:5001/Enabled",
+			type: "Get",
+		}).done(function () {
+			$("#enbC").text("1");
+		});
+	</script>
+
+	<p><b>Enabled Controller with disabled Action</b></p>
+	<span id="enbA"></span>
+	<script>
+		$.ajax({
+			url: "https://localhost:5001/Enabled/disabled",
+			type: "Get",
+		}).done(function () {
+			$("#enbA").text("1");
+		}).fail(function () {
+			$("#enbA").text("0");
+		});
+	</script>
+
+	<p><b>Disabled Controller</b></p>
+	<span id="disb"></span>
+	<script>
+		$.ajax({
+			url: "https://localhost:5001/disabled",
+			type: "Get",
+		}).done(function () {
+			$("#disb").text("1");
+		}).fail(function () {
+			$("#disb").text("0");
+		});
+	</script>
+
+	<p><b>Upload File via buffering</b></p>
+	<input id="fileUpload" type="file" /><button onclick="upload();">upload</button>
+	<span id="fileSpan"></span>
+	<script>
+		function upload() {
+			var fd = new FormData();
+			var files = $("#fileUpload")[0].files;
+			fd.append('files', files[0]);
+			$.ajax({
+				url: "https://localhost:5001/file",
+				type: "POST",
+				data: fd,
+				contentType: false,
+				processData: false,
+			}).done(function () {
+				$("#fileSpan").text("1");
+			}).fail(function () {
+				$("#fileSpan").text("0");
+			});
+		}
+	</script>
 </body>
 </html>
