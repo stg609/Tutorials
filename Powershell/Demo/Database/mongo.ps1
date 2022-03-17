@@ -1,4 +1,4 @@
-
+# 适用于 Powershell 5.1
 # 先安装 Mdbc 用于通过 ps 来操作 mongo，目前仅支持 ps 5.1 , refer to https://github.com/nightroman/Mdbc
 # Install-Module Mdbc
 
