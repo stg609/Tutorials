@@ -4,9 +4,12 @@ using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 
+[BsonIgnoreExtraElements]
+[BsonNoId]
 public class OperationRecordEntity
 {
-    public string _id { get; set; }
+    [BsonElement("_id")]
+    public string id { get; set; }
     [BsonElement("DataId")]
     public string dataId { get; set; }
     [BsonElement("ModifiedTime")]
