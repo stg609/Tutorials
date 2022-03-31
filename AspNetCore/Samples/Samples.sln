@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PollyDemo", "PollyDemo\Poll
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrivialDemo", "TrivialDemo\TrivialDemo.csproj", "{8E38F255-80AB-459A-9226-A100289226AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OcelotDemo", "OcelotDemo\OcelotDemo.csproj", "{97EE2288-6831-438B-BDC8-01992E66063A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OcelotDemo", "OcelotDemo\OcelotDemo.csproj", "{97EE2288-6831-438B-BDC8-01992E66063A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcServerDemo", "GrpcServerDemo\GrpcServerDemo.csproj", "{FA6793F9-66D4-4A00-8C1F-2A08973188A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{97EE2288-6831-438B-BDC8-01992E66063A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97EE2288-6831-438B-BDC8-01992E66063A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97EE2288-6831-438B-BDC8-01992E66063A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

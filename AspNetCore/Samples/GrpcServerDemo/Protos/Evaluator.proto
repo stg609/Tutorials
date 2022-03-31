@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Demo.Protos.v1";
+
+message EvaluateRequest {
+   string CodeBlock = 1;
+   string CacheKey = 2;
+   string ContextJson = 3;
+}
+
+message EvaluateResponse {
+  string VariablesJson = 1;
+}
+
+service Evaluator {
+	rpc EvaluateAsync(EvaluateRequest) returns (EvaluateResponse) {}
+}
