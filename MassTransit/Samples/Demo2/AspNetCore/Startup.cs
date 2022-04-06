@@ -51,6 +51,10 @@ namespace AspNetCore
                          // 配置 消费者 （必须先注册)
                          // 如下会建立 Consumer 的 MessageType 对应的 Exchange (e.g. EventContracts:ValueEntered)
                          // 并建立 EventContracts:ValueEntered (exchange) -> demo-receive-queue (exchange) 的绑定关系
+
+                         // quorum 队列不支持 priority，下面两个如果都反注释，那么该队列将无法创建成功，见：https://www.rabbitmq.com/quorum-queues.html#feature-matrix
+                         //e.EnablePriority(9);
+                         //e.SetQueueArgument("x-queue-type", "quorum");
                          e.ConfigureConsumer<DemoConsumer4>(ctx);
                      });
 
