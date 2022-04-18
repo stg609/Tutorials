@@ -13,7 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrivialDemo", "TrivialDemo\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OcelotDemo", "OcelotDemo\OcelotDemo.csproj", "{97EE2288-6831-438B-BDC8-01992E66063A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcServerDemo", "GrpcServerDemo\GrpcServerDemo.csproj", "{FA6793F9-66D4-4A00-8C1F-2A08973188A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcServerDemo", "GrpcServerDemo\GrpcServerDemo.csproj", "{FA6793F9-66D4-4A00-8C1F-2A08973188A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GrpcDemo", "GrpcDemo", "{4B4399FF-4A48-472D-BC3C-2D19409CAE1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcConsoleClient", "GrpcConsoleClient\GrpcConsoleClient.csproj", "{0C6EF772-6773-4B96-9230-9D6D62ED9E59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,9 +49,17 @@ Global
 		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA6793F9-66D4-4A00-8C1F-2A08973188A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C6EF772-6773-4B96-9230-9D6D62ED9E59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C6EF772-6773-4B96-9230-9D6D62ED9E59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C6EF772-6773-4B96-9230-9D6D62ED9E59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C6EF772-6773-4B96-9230-9D6D62ED9E59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FA6793F9-66D4-4A00-8C1F-2A08973188A7} = {4B4399FF-4A48-472D-BC3C-2D19409CAE1E}
+		{0C6EF772-6773-4B96-9230-9D6D62ED9E59} = {4B4399FF-4A48-472D-BC3C-2D19409CAE1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7970F024-9489-4B62-BC40-3A22F25EE898}
