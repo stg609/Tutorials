@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using OcelotDemo.Handlers;
 
 namespace OcelotDemo
 {
@@ -35,7 +36,9 @@ namespace OcelotDemo
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OcelotDemo", Version = "v1" });
             });
 
-            services.AddOcelot();
+            services.AddOcelot()
+                // true 表示全局
+                .AddDelegatingHandler<DemoHandler>(true);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
