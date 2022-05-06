@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5001
+          "Port": 4000
         }
       ],
       "UpstreamPathTemplate": "/api/{everything}",

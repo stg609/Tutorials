@@ -13,8 +13,7 @@ namespace GrpcServerDemo.Services
         {
             _logger = logger;
         }
-
-        public override Task<EvaluateResponse> EvaluateAsync(EvaluateRequest request, ServerCallContext context)
+        public override Task<EvaluateResponse> Evaluate(EvaluateRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Saying hello to {Name}", request.CodeBlock);
             return Task.FromResult(new EvaluateResponse

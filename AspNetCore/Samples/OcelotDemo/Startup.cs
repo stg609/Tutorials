@@ -39,6 +39,8 @@ namespace OcelotDemo
             services.AddOcelot()
                 // true 表示全局
                 .AddDelegatingHandler<DemoHandler>(true);
+
+            services.AddHttpClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

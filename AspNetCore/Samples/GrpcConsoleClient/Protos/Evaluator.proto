@@ -1,5 +1,5 @@
 ﻿syntax = "proto3";
-import "google/protobuf/any.proto";
+
 option csharp_namespace = "Demo.Protos.v1";
 
 message EvaluateRequest {
@@ -10,8 +10,10 @@ message EvaluateRequest {
 
 message EvaluateResponse {
   string VariablesJson = 1;
+  string ReturnValue = 2;
+  string Output = 3;
 }
 
 service Evaluator {
-	rpc EvaluateAsync(EvaluateRequest) returns (EvaluateResponse) {}
+	rpc Evaluate(EvaluateRequest) returns (EvaluateResponse) {}
 }
