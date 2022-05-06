@@ -13,7 +13,7 @@ namespace GrpcConsoleClient
             var channel = GrpcChannel.ForAddress("https://localhost:5001");
             var client = new Evaluator.EvaluatorClient(channel);
 
-            var reply = await client.EvaluateAsyncAsync(new EvaluateRequest
+            var reply = await client.EvaluateAsync(new EvaluateRequest
             {
                 CodeBlock = "test",
 
