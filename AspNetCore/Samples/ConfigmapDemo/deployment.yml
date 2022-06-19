@@ -1,0 +1,32 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: configmap-demo
+  namespace: default
+  labels:
+    k8s-app: configmap-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: configmap-demo
+  template:
+    metadata:
+      name: configmap-demo
+      labels:
+        k8s-app: configmap-demo
+    spec:
+      volumes:
+        - name: configmap-demo-volume
+          configMap:
+            name: configmap-demo
+      containers:
+        - name: configmap-demo
+          image: 'stg609/configmap-demo:v0.0.2'
+          env:
+          - name: DOTNET_USE_POLLING_FILE_WATCHER
+            value: "true"
+          volumeMounts:
+            - name: configmap-demo-volume
+              mountPath: /app/k8s/
+          imagePullPolicy: IfNotPresent
