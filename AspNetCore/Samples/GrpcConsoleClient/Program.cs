@@ -10,7 +10,7 @@ namespace GrpcConsoleClient
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            var channel = GrpcChannel.ForAddress("https://localhost:5000");
+            var channel = GrpcChannel.ForAddress("https://localhost:5001");
             var client = new Evaluator.EvaluatorClient(channel);
 
             var reply = await client.EvaluateAsync(new EvaluateRequest

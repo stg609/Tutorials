@@ -8,15 +8,16 @@ message EvaluateRequest {
   google.protobuf.StringValue cache_key = 2;
   google.protobuf.StringValue context_json = 3;
   google.protobuf.StringValue context_json_schema = 4;
-  bool is_bson_document = 5;
+  google.protobuf.BoolValue is_bson_document = 5;
 }
 
 message EvaluateResponse {
-  bool is_success = 1;
+  google.protobuf.BoolValue is_success = 1;
   google.protobuf.StringValue variables_json = 2;
   google.protobuf.StringValue return_value = 3;
   google.protobuf.StringValue output = 4;
   google.protobuf.StringValue exception = 5;
+  map<string, string> dic = 6;
 }
 
 

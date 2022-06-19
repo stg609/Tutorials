@@ -16,10 +16,16 @@ namespace GrpcServerDemo.Services
         public override Task<EvaluateResponse> Evaluate(EvaluateRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Saying hello to {Name}", request.CodeBlock);
-            return Task.FromResult(new EvaluateResponse
+
+            var rsp = new EvaluateResponse
             {
-                VariablesJson = "{}"
-            });
+                VariablesJson = "{}",
+            };
+
+            rsp.Dic.Add("abc", "");
+
+
+            return Task.FromResult(rsp);
         }
     }
 }
