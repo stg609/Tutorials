@@ -13,8 +13,8 @@
 		
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<Version>1.0.3</Version>
-		<Description>增加 Repository 信息</Description>
+		<Version>1.0.4</Version>
+		<Description>增加 Repository 信息, 同时基于最新的 git history 打包</Description>
 	</PropertyGroup>
 
 	<ItemGroup>
