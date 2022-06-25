@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: crash-demo
+  namespace: default
+  labels:
+    k8s-app: crash-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: crash-demo
+  template:
+    metadata:
+      name: crash-demo
+      labels:
+        k8s-app: crash-demo
+    spec:
+      containers:
+        - name: crash-demo
+          image: 'stg609/crash-demo:v0.0.8'
+          env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+          - name: Logging__LogLevel__Default
+            value: Warning
+          - name: Logging__LogLevel__Microsoft.Extensions.Diagnostics.HealthChecks.DefaultHealthCheckService
+            value: Information
+          - name: Logging__LogLevel__Microsoft.Hosting.Lifetime
+            value: Information
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 80
+            initialDelaySeconds: 1
+            periodSeconds: 3
+          resources:
+            requests:
+              memory: 50Mi
+              cpu: 500m
+            limits:
+              memory: 50Mi
+              cpu: 500m
+          imagePullPolicy: IfNotPresent
