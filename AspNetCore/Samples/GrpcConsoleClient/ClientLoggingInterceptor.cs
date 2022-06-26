@@ -25,7 +25,28 @@ namespace GrpcConsoleClient
         {
             _logger.LogInformation($"Starting call. Type: {context.Method.Type}. " +
                 $"Method: {context.Method.Name}.{request}");
-            return continuation(request, context);
+            var call = continuation(request, context);
+
+            return new AsyncUnaryCall<TResponse>(
+               HandleResponse(_logger, call.ResponseAsync),
+               call.ResponseHeadersAsync,
+               call.GetStatus,
+               call.GetTrailers,
+               call.Dispose);
+        }
+
+        private async Task<TResponse> HandleResponse<TResponse>(ILogger logger, Task<TResponse> inner)
+        {
+            try
+            {
+                var rsp = await inner;
+                logger.LogInformation("Response:" + rsp);
+                return rsp;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Custom error", ex);
+            }
         }
     }
 }
