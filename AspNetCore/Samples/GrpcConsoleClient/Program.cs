@@ -1,5 +1,7 @@
 ﻿using Demo.Protos.v1;
+using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -10,8 +12,17 @@ namespace GrpcConsoleClient
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            var channel = GrpcChannel.ForAddress("https://localhost:5001");
-            var client = new Evaluator.EvaluatorClient(channel);
+
+            var loggerFactory = LoggerFactory.Create(logging =>
+            {
+                logging.AddConsole();
+                logging.SetMinimumLevel(LogLevel.Debug);
+            });
+
+            using var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions { LoggerFactory = loggerFactory });
+            var invoker = channel.Intercept(new ClientLoggingInterceptor(loggerFactory));
+
+            var client = new Evaluator.EvaluatorClient(invoker);
 
             var reply = await client.EvaluateAsync(new EvaluateRequest
             {
