@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using CodingSeb.ExpressionEvaluator;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
@@ -21,8 +27,12 @@ namespace Demo1
         {
             Program p = new Program();
 
+            //await TestAssemblyUnload();
+
+            await TestCreateFileUnloadAssemblyAsync();
+
             //Console.WriteLine("Hello World!");
-            var ret1 = await Evalute1Plus1Async();
+            //var ret1 = await Evalute1Plus1Async();
             //Console.WriteLine(ret1);
 
             //var ret2 = await Evalute1Plus1_ComplexAsync();
@@ -52,14 +62,130 @@ namespace Demo1
 
             //await RunExpandoObjectWithGlobalsAsync();
 
-            await RunWithGlobalExpandoAsync();
+            //await RunWithGlobalExpandoAsync();
 
             //p.BenchmarkUsingExpressionEvaluator();
 
             //BenchmarkRunner.Run<Program>();
 
             await Task.CompletedTask;
+
+            Console.ReadLine();
         }
+
+
+        /// <summary>
+        /// 演示直接通过 EvaluateAsync 来执行简单的场景, 这种方式，RunAsync 创建的 assembly 直接加载当当前 Context 无法释放，内存占用多
+        /// </summary>
+        /// <returns></returns>
+        static async Task TestAssemblyUnload()
+        {
+            // 截至目前 2022/6/30 roslyn 尚不支持 unload assembly context
+
+            var sc = ScriptOptions.Default.WithOptimizationLevel(OptimizationLevel.Release)
+            .AddReferences(typeof(object).Assembly)
+                    .AddReferences(typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly)
+                    .AddReferences(typeof(System.Linq.Enumerable).Assembly)
+                    .AddReferences(typeof(System.Collections.Generic.List<>).Assembly)
+                    .AddImports("System", "System.Collections.Generic", "System.Linq");
+
+
+            while (true)
+            {
+                await CSharpScript.RunAsync(
+                    @"List<byte[]> arr = new List<byte[]>();
+                        for(var i=0;i<100000;i++)
+                        {
+                        arr.Add(new byte[4096]);
+                        }
+            Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());", sc);
+                System.Console.WriteLine($"Loaded assemblies: {System.AppDomain.CurrentDomain.GetAssemblies().Count()}");
+
+                // 为了与 TestCreateFileUnloadAssemblyAsync 进行对比，所以都进行一次 Collect
+                GC.Collect();
+                await Task.Delay(200);
+
+            }
+        }
+
+        /// <summary>
+        /// 测试通过先编译成 dll，然后再另外一个 可以unload 的 Context 中进行加载和运行，assembly 可以释放，内存占用小
+        /// </summary>
+        /// <returns></returns>
+        static async Task TestCreateFileUnloadAssemblyAsync()
+        {
+            string scripts = @"namespace HelloWorld{
+    using System;
+    using System.Linq;
+    using System.Collections.Generic;
+    public class Program{
+        public static void Main(){
+            List<byte[]> arr = new List<byte[]>();
+for(var i=0;i<100000;i++)
+{
+arr.Add(new byte[4096]);
+}
+            Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());
+        }
+    }
+}
+";
+
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(scripts, null, "");
+            var defaultMetadataReferences = ImmutableArray.Create(new MetadataReference[]
+           {
+                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.AppDomain).Assembly.Location),
+                MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+           });
+
+
+            CSharpCompilation compilation = CSharpCompilation.Create
+            (
+                "test",
+                new[] { syntaxTree },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, usings: new[] { "System", "System.Linq" }, optimizationLevel: OptimizationLevel.Release),
+                references: defaultMetadataReferences
+            );
+
+            byte[] byts;
+            using MemoryStream ms = new MemoryStream();
+            {
+                var emitResult = compilation.Emit(ms);
+                byts = ms.ToArray();
+            }
+
+
+            while (true)
+            {
+                Exec();
+                System.Console.WriteLine($"Loaded assemblies: {System.AppDomain.CurrentDomain.GetAssemblies().Count()}");
+                await Task.Delay(200);
+            }
+
+            void Exec()
+            {
+                CollectibleAssemblyLoadContext context = new CollectibleAssemblyLoadContext();
+                using MemoryStream ms2 = new MemoryStream(byts);
+
+                var ass = context.LoadFromStream(ms2);
+
+                //var ass = Assembly.Load(byts);
+                var typs = ass.GetTypes();
+                var mems = typs[0].GetMethods();
+                mems[0].Invoke(null, null);
+
+                // 卸载是异步的
+                context.Unload();
+
+                // 回收会触发 context 卸载
+                GC.Collect();
+            }
+        }
+
 
         static async Task<object> Evalute1Plus1Async()
         {
@@ -206,7 +332,7 @@ GlobalM2(""aaa"");
             var csharp = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly; // 使用 dynamic 需要的 dll
             ScriptOptions scriptOptions = ScriptOptions.Default
                 .AddReferences(expressions, csharp)
-                .AddImports("System", "System.Dynamic"); 
+                .AddImports("System", "System.Dynamic");
 
             var script = await CSharpScript.RunAsync(sb.ToString(), scriptOptions, global);
 
@@ -304,6 +430,8 @@ void M(string val) {
 
             await rslt.RunAsync();
         }
+
+
 
         /// <summary>
         /// 分成2个 script
@@ -486,6 +614,22 @@ for(i=0;i<m3;i++){Console.WriteLine(i);}
         public void GlobalM2(string param1)
         {
             Console.WriteLine("This is method from Global M2:" + param1);
+        }
+    }
+
+    class CollectibleAssemblyLoadContext : AssemblyLoadContext, IDisposable
+    {
+        public CollectibleAssemblyLoadContext() : base(true)
+        { }
+
+        protected override Assembly Load(AssemblyName assemblyName)
+        {
+            return null;
+        }
+
+        public void Dispose()
+        {
+            Unload();
         }
     }
 }
