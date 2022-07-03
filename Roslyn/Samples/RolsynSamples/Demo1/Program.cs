@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using CodingSeb.ExpressionEvaluator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -29,7 +33,7 @@ namespace Demo1
 
             //await TestAssemblyUnload();
 
-            await TestCreateFileUnloadAssemblyAsync();
+            await p.TestCreateFileUnloadAssemblyAsync();
 
             //Console.WriteLine("Hello World!");
             //var ret1 = await Evalute1Plus1Async();
@@ -73,119 +77,206 @@ namespace Demo1
             Console.ReadLine();
         }
 
-
+        static Script<object> script1;
         /// <summary>
         /// 演示直接通过 EvaluateAsync 来执行简单的场景, 这种方式，RunAsync 创建的 assembly 直接加载当当前 Context 无法释放，内存占用多
         /// </summary>
         /// <returns></returns>
-        static async Task TestAssemblyUnload()
+        [Benchmark]
+        public async Task TestAssemblyUnload()
         {
             // 截至目前 2022/6/30 roslyn 尚不支持 unload assembly context
-
-            var sc = ScriptOptions.Default.WithOptimizationLevel(OptimizationLevel.Release)
-            .AddReferences(typeof(object).Assembly)
-                    .AddReferences(typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly)
-                    .AddReferences(typeof(System.Linq.Enumerable).Assembly)
-                    .AddReferences(typeof(System.Collections.Generic.List<>).Assembly)
-                    .AddImports("System", "System.Collections.Generic", "System.Linq");
-
-
-            while (true)
+            if (script1 == null)
             {
-                await CSharpScript.RunAsync(
-                    @"List<byte[]> arr = new List<byte[]>();
-                        for(var i=0;i<100000;i++)
-                        {
-                        arr.Add(new byte[4096]);
-                        }
+                var sc = ScriptOptions.Default.WithOptimizationLevel(OptimizationLevel.Release)
+                .AddReferences(typeof(object).Assembly)
+                        .AddReferences(typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly)
+                        .AddReferences(typeof(System.Linq.Enumerable).Assembly)
+                        .AddReferences(typeof(System.Collections.Generic.List<>).Assembly)
+                        .AddImports("System", "System.Collections.Generic", "System.Linq");
+
+                script1 = CSharpScript.Create(
+                    @"  
+                        //List<byte[]> arr = new List<byte[]>();
+                        //for(var i=0;i<100000;i++)
+                        //{
+                        //    arr.Add(new byte[4096]);
+                        //}
             Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());", sc);
-                System.Console.WriteLine($"Loaded assemblies: {System.AppDomain.CurrentDomain.GetAssemblies().Count()}");
-
-                // 为了与 TestCreateFileUnloadAssemblyAsync 进行对比，所以都进行一次 Collect
-                GC.Collect();
-                await Task.Delay(200);
-
+                //System.Console.WriteLine($"Loaded assemblies: {System.AppDomain.CurrentDomain.GetAssemblies().Count()}");
             }
+
+            //while(true)
+            await script1.RunAsync();
+            // 为了与 TestCreateFileUnloadAssemblyAsync 进行对比，所以都进行一次 Collect
+            //GC.Collect();
+            //await Task.Delay(200);
         }
+
+
+        static byte[] assemblyBinaryContent;
 
         /// <summary>
         /// 测试通过先编译成 dll，然后再另外一个 可以unload 的 Context 中进行加载和运行，assembly 可以释放，内存占用小
         /// </summary>
         /// <returns></returns>
-        static async Task TestCreateFileUnloadAssemblyAsync()
+        [Benchmark]
+        public async Task TestCreateFileUnloadAssemblyAsync()
         {
-            string scripts = @"namespace HelloWorld{
-    using System;
-    using System.Linq;
-    using System.Collections.Generic;
-    public class Program{
-        public static void Main(){
-            List<byte[]> arr = new List<byte[]>();
-for(var i=0;i<100000;i++)
-{
-arr.Add(new byte[4096]);
-}
-            Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());
-        }
-    }
-}
+            // 现随便执行一个脚本，这样后续的执行就会快一个数量级，如果没有这个，那么后面 sw 执行后需要 3000 ms，如果加了这个，则约 300ms
+            await CSharpScript.Create("1.ToString()").RunAsync();
+            MethodInfo mem = null;
+            Func<object[], Task<object>> stronglyTypedDelegate = null;
+
+            if (assemblyBinaryContent == null)
+            {
+                string scripts = @"
+//            List<byte[]> arr = new List<byte[]>();
+//for(var i=0;i<100000;i++)
+//{
+//arr.Add(new byte[4096]);
+//}
+            Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());        
+            Console.WriteLine(@in.a);        
 ";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(scripts, null, "");
-            var defaultMetadataReferences = ImmutableArray.Create(new MetadataReference[]
-           {
-                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.AppDomain).Assembly.Location),
-                MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-           });
+                var defaultMetadataReferences = ImmutableArray.Create(new MetadataReference[]
+                {
+                    MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(System.AppDomain).Assembly.Location),
+                    MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                });
+                string[] defaultUsings = new[] { "System", "System.Linq", "System.Collections.Generic" };
 
 
-            CSharpCompilation compilation = CSharpCompilation.Create
-            (
-                "test",
-                new[] { syntaxTree },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, usings: new[] { "System", "System.Linq" }, optimizationLevel: OptimizationLevel.Release),
-                references: defaultMetadataReferences
-            );
+                var so = ScriptOptions.Default
+                    .AddImports(defaultUsings)
+                    .AddReferences(
+                        "System",
+                        "System.Core",
+                        "System.Data",
+                        "System.Data.DataSetExtensions",
+                        "System.Runtime",
+                        "System.Xml",
+                        "System.Xml.Linq",
+                        "System.Net.Http",
+                        "Microsoft.CSharp");
 
-            byte[] byts;
-            using MemoryStream ms = new MemoryStream();
-            {
-                var emitResult = compilation.Emit(ms);
-                byts = ms.ToArray();
+                var roslynScript = CSharpScript.Create(scripts, so, typeof(GlobalType));
+                var compilation = roslynScript.GetCompilation();
+
+                compilation = compilation.WithOptions(compilation.Options
+                    .WithOptimizationLevel(OptimizationLevel.Release)
+                    .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+
+                using (var assemblyStream = new MemoryStream())
+                {
+                    var result = compilation.Emit(assemblyStream);
+                    if (!result.Success)
+                    {
+                        var errors = string.Join(Environment.NewLine, result.Diagnostics.Select(x => x));
+                        throw new Exception("Compilation errors: " + Environment.NewLine + errors);
+                    }
+
+                    assemblyBinaryContent = assemblyStream.ToArray();
+
+                    var entryPoint = compilation.GetEntryPoint(CancellationToken.None);
+                }
             }
 
-
+            Stopwatch sw = Stopwatch.StartNew();
             while (true)
             {
-                Exec();
-                System.Console.WriteLine($"Loaded assemblies: {System.AppDomain.CurrentDomain.GetAssemblies().Count()}");
+                sw.Restart();
+                await Exec();
+                sw.Stop();
+                Console.WriteLine("Elapsed:" + sw.ElapsedMilliseconds);
+
                 await Task.Delay(200);
             }
 
-            void Exec()
+
+            async Task Exec()
             {
                 CollectibleAssemblyLoadContext context = new CollectibleAssemblyLoadContext();
-                using MemoryStream ms2 = new MemoryStream(byts);
+                using MemoryStream ms2 = new MemoryStream(assemblyBinaryContent);
 
                 var ass = context.LoadFromStream(ms2);
 
-                //var ass = Assembly.Load(byts);
-                var typs = ass.GetTypes();
-                var mems = typs[0].GetMethods();
-                mems[0].Invoke(null, null);
+                if (stronglyTypedDelegate == null)
+                {
+                    var typ = ass.GetType("Submission#0");
+                    mem = typ.GetMethod("<Factory>", BindingFlags.Static | BindingFlags.Public);
+                    stronglyTypedDelegate = (Func<object[], Task<object>>)Delegate.CreateDelegate(typeof(Func<object[], Task<object>>), null, mem);
+                }
+
+                //var rslt = await stronglyTypedDelegate(new object[2]);
+                var ctx = new GlobalType();
+                ctx.@in.a = "!23";
+
+                var retTask = mem.Invoke(null, new object[] { new object[2] {ctx, null } }) as Task<object>;
+                var rslt = await retTask;
 
                 // 卸载是异步的
                 context.Unload();
 
                 // 回收会触发 context 卸载
-                GC.Collect();
+                //GC.Collect();
             }
         }
 
+        public class GlobalType
+        {
+            private NullableExpandoObject _in = new NullableExpandoObject();
+            public dynamic @in
+            {
+                get
+                {
+                    return _in;
+                }
+            }
+        }
+        public class NullableExpandoObject : DynamicObject
+        {
+            private Dictionary<string, object> _dic = new Dictionary<string, object>();
+
+            public override bool TryGetMember(GetMemberBinder binder, out object result)
+            {
+                bool found = _dic.TryGetValue(binder.Name, out result);
+                if (!found)
+                {
+                    result = null;
+                }
+                return true;
+
+            }
+
+            public override bool TrySetMember(SetMemberBinder binder, object value)
+            {
+                AddProperty(binder.Name, value);
+                return true;
+            }
+
+            public void AddProperty(string name, object value)
+            {
+                _dic[name] = value;
+            }
+
+            public object this[string propertyName]
+            {
+                get
+                {
+                    return _dic[propertyName];
+                }
+                set
+                {
+                    AddProperty(propertyName, value);
+                }
+            }
+        }
 
         static async Task<object> Evalute1Plus1Async()
         {
