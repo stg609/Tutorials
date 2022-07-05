@@ -217,15 +217,24 @@ namespace Demo1
                 var ctx = new GlobalType();
                 ctx.@in.a = "!23";
 
-                var retTask = mem.Invoke(null, new object[] { new object[2] {ctx, null } }) as Task<object>;
+                var retTask = mem.Invoke(null, new object[] { new object[2] { ctx, null } }) as Task<object>;
                 var rslt = await retTask;
+
+                stronglyTypedDelegate = null; // 如果这个不置空，那么说明还有使用这个 context 的地方，这个 context 就不会 unload
 
                 // 卸载是异步的
                 context.Unload();
+                context.Unloading += Context_Unloading;
+
 
                 // 回收会触发 context 卸载
-                //GC.Collect();
+                GC.Collect();
             }
+        }
+
+        private void Context_Unloading(AssemblyLoadContext obj)
+        {
+            Console.WriteLine("unloading...");
         }
 
         public class GlobalType
