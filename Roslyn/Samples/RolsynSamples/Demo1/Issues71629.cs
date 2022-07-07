@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -11,16 +12,35 @@ namespace Demo1
     //https://github.com/dotnet/runtime/issues/71629
     public class Issues71629
     {
+        public class ContextWrapper
+        {
+            public object Context { get; set; }
+        }
+
         public static async Task Main2(string[] args)
         {
-            string code = @"dynamic eo = new ExpandoObject(); 
-                        // eo.abc = 123; // comment this line will fix the issue
-                        Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());";
+            string code = @"
+return SomeMethod(Context); // use to get the return value and the variables like CSharpScript.Run
+object SomeMethod(dynamic context)
+{
+    // actual code == start
+    dynamic eo = new ExpandoObject(); 
+    eo.abc = 123; // comment out this line to solve the problem
+    context.Append(""aaa""); // comment out this line to solve the problem
+
+    Console.WriteLine(System.AppDomain.CurrentDomain.GetAssemblies().Count());
+    return 1;
+    // == end
+
+
+    return null;
+}";
+
             ScriptOptions so = ScriptOptions.Default
                 .AddImports("System", "System.Linq", "System.Dynamic")
                 .AddReferences("System", "System.Core", "Microsoft.CSharp");
 
-            var cs = CSharpScript.Create(code, so);
+            var cs = CSharpScript.Create(code, so, typeof(ContextWrapper));
             var compilation = cs.GetCompilation();
 
             //            var synTree = CSharpSyntaxTree.ParseText(@"
@@ -51,6 +71,9 @@ namespace Demo1
             using MemoryStream ms = new MemoryStream();
             var rslt = compilation.Emit(ms);
 
+            // Console.SetOut will not affect the unload
+            using StringWriter sw = new StringWriter();
+            Console.SetOut(sw);
             while (true)
             {
                 ms.Seek(0, SeekOrigin.Begin);
@@ -62,7 +85,8 @@ namespace Demo1
                 //var typ = ass.GetTypes().First() ;
                 //var mem = typ.GetMethods().First();
                 //var retTask = mem.Invoke(null, new object[] { null}) ;
-                var retTask = mem.Invoke(null, new object[] { new object[2] }) as Task<object>;
+                var context = new ContextWrapper { Context = new StringBuilder() };
+                var retTask = mem.Invoke(null, new object[] { new object[2] { context, null } }) as Task<object>;
                 var rsltTsk = await retTask;
 
                 lc.Unload();
