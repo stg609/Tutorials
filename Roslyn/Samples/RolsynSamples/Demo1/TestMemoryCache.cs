@@ -6,6 +6,7 @@ using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,11 @@ namespace Demo1
 
         public static async Task Main(string[] args)
         {
-            string code = @"
+            string code = @"int a = 0;
+//some comments
+// int b = 1/a; simulate throw ex, to see the line number in the stack trace
+
+
 return SomeMethod(Context); // use to get the return value and the variables like CSharpScript.Run
 object SomeMethod(dynamic context)
 {
@@ -40,6 +45,7 @@ object SomeMethod(dynamic context)
 }";
 
             ScriptOptions so = ScriptOptions.Default
+                .WithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel.Release)
                 .AddImports("System", "System.Linq", "System.Dynamic")
                 .AddReferences("System", "System.Core", "Microsoft.CSharp");
 
@@ -51,7 +57,7 @@ object SomeMethod(dynamic context)
             while (i < 25)
             {
                 object[] rslt = cache.GetOrCreate("a", itm =>
-                
+
                 {
                     Console.WriteLine("create new");
                     itm.SetAbsoluteExpiration(TimeSpan.FromSeconds(2));
@@ -69,7 +75,8 @@ object SomeMethod(dynamic context)
                     });
 
                     using MemoryStream ms = new MemoryStream();
-                    var rslt = compilation.Emit(ms);
+                    var emitOpts = new EmitOptions();
+                    var rslt = compilation.Emit(ms, options: emitOpts.WithDebugInformationFormat(DebugInformationFormat.Embedded)); // 包含 Em
 
 
                     ms.Seek(0, SeekOrigin.Begin);
@@ -78,17 +85,17 @@ object SomeMethod(dynamic context)
 
                     var typ = ass.GetType("Submission#0");
                     var mem = typ.GetMethod("<Factory>", BindingFlags.Static | BindingFlags.Public);
-                    
-                    var strongTypeDelegate = (Func<object[], Task<object>>)Delegate.CreateDelegate(typeof(Func<object[], Task<object>>), null, mem);
 
+                    var strongTypeDelegate = (Func<object[], Task<object>>)Delegate.CreateDelegate(typeof(Func<object[], Task<object>>), null, mem);
+                   
                     return new object[] { lc, strongTypeDelegate };
 
                 });
 
                 //Console.WriteLine(loadContext.Assemblies.Count());
-                //var context = new ContextWrapper { Context = new StringBuilder() };
-                //var rslt = await del(new object[2] { context, null });
-                //del = null;
+                var context = new ContextWrapper { Context = new StringBuilder() };
+                var output = await ((Func<object[], Task<object>>)rslt[1])(new object[2] { context, null });
+                
 
                 await Task.Delay(500);
                 i++;
