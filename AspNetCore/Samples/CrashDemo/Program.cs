@@ -56,13 +56,9 @@ try
     });
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
 
-    app.UseHttpsRedirection();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseAuthorization();
     app.UseRouting();
@@ -72,6 +68,7 @@ try
         eps.MapHealthChecks("/liveness");
     });
 
+    Console.WriteLine("--- IsServerGC: " + System.Runtime.GCSettings.IsServerGC);
     app.Run();
 
 }

@@ -18,8 +18,10 @@ spec:
     spec:
       containers:
         - name: crash-demo
-          image: 'stg609/crash-demo:v0.0.8'
+          image: 'stg609/crash-demo:v0.0.15'
           env:
+          - name: DOTNET_gcServer
+            value: "0"
           - name: ASPNETCORE_ENVIRONMENT
             value: Development
           - name: Logging__LogLevel__Default
@@ -36,9 +38,9 @@ spec:
             periodSeconds: 3
           resources:
             requests:
-              memory: 50Mi
-              cpu: 500m
+              memory: 1000Mi
+              cpu: 1100m
             limits:
-              memory: 50Mi
-              cpu: 500m
-          imagePullPolicy: IfNotPresent
+              memory: 1000Mi
+              cpu: 1100m
+          imagePullPolicy: Always

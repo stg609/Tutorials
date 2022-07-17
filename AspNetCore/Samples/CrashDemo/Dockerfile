@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["CrashDemo/CrashDemo.csproj", "CrashDemo/"]
+COPY ["nuget.config", ""]
 RUN dotnet restore "CrashDemo/CrashDemo.csproj"
 COPY . .
 WORKDIR "/src/CrashDemo"
