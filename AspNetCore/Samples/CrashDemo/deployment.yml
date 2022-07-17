@@ -18,12 +18,14 @@ spec:
     spec:
       containers:
         - name: crash-demo
-          image: 'stg609/crash-demo:v0.0.15'
+          image: 'stg609/crash-demo:v0.0.16'
           env:
           - name: DOTNET_gcServer
-            value: "0"
-          - name: DOTNET_GCHeapHardLimitPercent
-            value: "1E"
+            value: "0" # 0 表示workstation, 1 表示 server 
+          #- name: DOTNET_GCHeapHardLimit  # 设置 GC Heap 允许的大小，超过大小会引起 OOM
+          #  value: "1E00000" # 30m
+          #- name: DOTNET_GCHighMemPercent  # 设置 怎么样的物理内存占比 需要进行 GC 
+          #  value: "0x28" # 40%
           - name: ASPNETCORE_ENVIRONMENT
             value: Development
           - name: Logging__LogLevel__Default

@@ -68,6 +68,9 @@ try
         eps.MapHealthChecks("/liveness");
     });
 
+    var gcMemInfo = GC.GetGCMemoryInfo();
+    Console.WriteLine($"Total Available :{gcMemInfo.TotalAvailableMemoryBytes/1024/1024} MB");
+    Console.WriteLine($"High Memory Threshold:{gcMemInfo.HighMemoryLoadThresholdBytes/1024/1024} MB");
     Console.WriteLine("--- IsServerGC: " + System.Runtime.GCSettings.IsServerGC);
     app.Run();
 

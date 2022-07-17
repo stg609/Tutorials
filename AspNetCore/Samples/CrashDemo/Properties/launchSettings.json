@@ -15,7 +15,8 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "DOTNET_gcServer": "0",
-        "DOTNET_GCHeapHardLimitPercent": "1E",
+        "DOTNET_GCHighMemPercent": "0x28",
+        "DOTNET_GCHeapHardLimit": "F00000",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:5000",
