@@ -22,6 +22,8 @@ spec:
           env:
           - name: DOTNET_gcServer
             value: "0"
+          - name: DOTNET_GCHeapHardLimitPercent
+            value: "1E"
           - name: ASPNETCORE_ENVIRONMENT
             value: Development
           - name: Logging__LogLevel__Default
